@@ -1,0 +1,104 @@
+/* Background wrapper with image and overlay */
+.skillform-bg-wrapper {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url('../assets/background_image.png') center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-form-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skill-form {
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.skill-form h2 {
+  text-align: center;
+  color: #008B8B;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #222;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.7rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f9fafb;
+  transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border: 1.5px solid #008B8B;
+  outline: none;
+}
+
+.form-group input[type="text"]#customSkill {
+  margin-top: 0.5rem;
+}
+
+.submit-btn {
+  margin-top: 0.5rem;
+  padding: 0.8rem 0;
+  background: #008B8B;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #006d6d;
+}
+
+@media (max-width: 800px) {
+  .skill-form {
+    max-width: 95vw;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .skill-form {
+    padding: 1.2rem 0.5rem;
+    max-width: 98vw;
+  }
+} 
