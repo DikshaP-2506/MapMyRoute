@@ -5,6 +5,7 @@
   background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url('../assets/background_image.png') center/cover no-repeat;
   display: flex;
   flex-direction: column;
+  margin-left: 180px; /* Add this for sidebar space */
 }
 
 .skill-form-container {
@@ -101,4 +102,10 @@
     padding: 1.2rem 0.5rem;
     max-width: 98vw;
   }
-} 
+}
+
+@media (max-width: 700px) {
+  .skillform-bg-wrapper {
+    margin-left: 0;
+  }
+}

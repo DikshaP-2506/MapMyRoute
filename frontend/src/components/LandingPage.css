@@ -13,15 +13,14 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  margin-left: 180px; /* Add this for sidebar space */
+  position: relative;
 }
 
 /* Navigation bar styles */
 .navbar {
   background-color: #008B8B;
   padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -211,4 +210,10 @@ body {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-} 
+}
+
+@media (max-width: 700px) {
+  .landing-page {
+    margin-left: 0;
+  }
+}
