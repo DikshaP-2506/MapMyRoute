@@ -32,6 +32,64 @@ const LandingPage = () => {
             </p>
           </div>
         </section>
+
+        <section className="features">
+          <div className="features-content">
+            <h3>Our Features</h3>
+            <div className="features-grid">
+              <div className="feature-card">
+                <h4>🚗 Route Planning</h4>
+                <p>Intelligent route optimization with real-time traffic updates and multiple route options.</p>
+              </div>
+              <div className="feature-card">
+                <h4>📊 Progress Tracker</h4>
+                <p>Track your learning progress with interactive checklists, task management, and calendar planning.</p>
+              </div>
+              <div className="feature-card">
+                <h4>📚 Resource Management</h4>
+                <p>Access curated learning resources and recommendations tailored to your skill level.</p>
+              </div>
+              <div className="feature-card">
+                <h4>📈 Analytics</h4>
+                <p>Monitor your progress with detailed analytics and performance insights.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="progress-tracker-preview">
+          <div className="preview-content">
+            <h3>New: Progress Tracker & Planner</h3>
+            <p>
+              Stay organized and motivated with our comprehensive progress tracking system. 
+              Create tasks, set deadlines, and monitor your completion rates with our interactive tools.
+            </p>
+            <div className="preview-features">
+              <div className="preview-feature">
+                <span>✅</span>
+                <span>Interactive checklists and task completion tracking</span>
+              </div>
+              <div className="preview-feature">
+                <span>📅</span>
+                <span>Calendar view for weekly task management</span>
+              </div>
+              <div className="preview-feature">
+                <span>🔄</span>
+                <span>Reschedule or mark incomplete tasks</span>
+              </div>
+              <div className="preview-feature">
+                <span>📊</span>
+                <span>Progress analytics and completion statistics</span>
+              </div>
+            </div>
+            <button 
+              className="cta-button"
+              onClick={() => navigate('/login')}
+            >
+              Get Started with Progress Tracker
+            </button>
+          </div>
+        </section>
       </main>
 
       <footer className="footer">

@@ -7,6 +7,8 @@ import Signup from './components/Auth/Signup';
 import SkillForm from './components/SkillForm';
 import History from './components/History';
 import Resources from './components/Resources';
+import ProgressTracker from './components/ProgressTracker';
+import Dashboard from './components/Dashboard';
 import { auth } from './firebase';
 
 function Sidebar() {
@@ -47,9 +49,39 @@ function Sidebar() {
           fontWeight: 'bold',
           cursor: 'pointer'
         }}
+        onClick={() => navigate('/dashboard')}
+      >
+        Dashboard
+      </button>
+      <button
+        style={{
+          margin: '10px 0',
+          padding: '10px 20px',
+          background: '#fff',
+          color: '#008B8B',
+          border: 'none',
+          borderRadius: '6px',
+          fontWeight: 'bold',
+          cursor: 'pointer'
+        }}
         onClick={() => navigate('/history')}
       >
         View History
+      </button>
+      <button
+        style={{
+          margin: '10px 0',
+          padding: '10px 20px',
+          background: '#fff',
+          color: '#008B8B',
+          border: 'none',
+          borderRadius: '6px',
+          fontWeight: 'bold',
+          cursor: 'pointer'
+        }}
+        onClick={() => navigate('/progress-tracker')}
+      >
+        Progress Tracker
       </button>
     </div>
   );
@@ -80,6 +112,8 @@ function App() {
             <Route path="/skill-form" element={<SkillForm />} />
             <Route path="/history" element={<History />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/progress-tracker" element={<ProgressTracker />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 
 const History = () => {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState('');
   const userId = auth.currentUser?.uid;
+  const navigate = useNavigate();
 
   const fetchHistory = () => {
     if (!userId) return;
@@ -29,7 +31,23 @@ const History = () => {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>Your Roadmap History</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2>Your Roadmap History</h2>
+        <button 
+          onClick={() => navigate('/')}
+          style={{ 
+            padding: '10px 20px', 
+            background: '#008B8B', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Home Page
+        </button>
+      </div>
       <button onClick={handleClearHistory} style={{ marginBottom: '1rem', padding: '8px 16px' }}>Clear History</button>
       {error && <div style={{ color: 'red' }}>{error}</div>}
       {history.length === 0 && <div>No history found.</div>}
