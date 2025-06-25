@@ -13,7 +13,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  margin-left: 180px; /* Add this for sidebar space */
   position: relative;
 }
 
@@ -88,6 +87,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 /* Hero section styles */
@@ -103,6 +103,7 @@ body {
   justify-content: flex-end;
   padding: 2rem;
   margin: 0;
+  width: 100%;
 }
 
 .hero-content {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import LandingPage from './components/LandingPage';
 import Login from './components/Auth/Login';
@@ -89,36 +89,50 @@ function Sidebar() {
 
 function App() {
   const [backendMsg, setBackendMsg] = useState('');
+  const location = useLocation();
+  const [user, setUser] = useState(auth.currentUser);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/hello')
       .then(res => res.json())
       .then(data => setBackendMsg(data.message))
       .catch(err => setBackendMsg('Error connecting to backend'));
+    const unsubscribe = auth.onAuthStateChanged(setUser);
+    return () => unsubscribe();
   }, []);
 
+  // Hide sidebar on home, login, signup
+  const hideSidebarRoutes = ['/', '/login', '/signup'];
+  const shouldShowSidebar = user && !hideSidebarRoutes.includes(location.pathname);
+
+  return (
+    <div className="App">
+      {shouldShowSidebar && <Sidebar />}
+      <div className="main-content">
+        <div style={{ background: '#e0e0e0', padding: '10px', marginBottom: '10px' }}>
+          Backend says: {backendMsg}
+        </div>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/skill-form" element={<SkillForm />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/progress-tracker" element={<ProgressTracker />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </div>
+    </div>
+  );
+}
+
+function AppWithRouter() {
   return (
     <Router>
-      <div className="App">
-        <Sidebar />
-        <div className="main-content">
-          <div style={{ background: '#e0e0e0', padding: '10px', marginBottom: '10px' }}>
-            Backend says: {backendMsg}
-          </div>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/skill-form" element={<SkillForm />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/progress-tracker" element={<ProgressTracker />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </div>
-      </div>
+      <App />
     </Router>
   );
 }
 
-export default App;
+export default AppWithRouter;
