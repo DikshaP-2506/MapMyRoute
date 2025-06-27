@@ -5,14 +5,6 @@ import './ProgressTracker.css';
 
 const ProgressTracker = () => {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState({
-    title: '',
-    description: '',
-    due_date: '',
-    priority: 'medium',
-    category: '',
-    estimated_hours: 1
-  });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('list'); // 'list', 'calendar', 'progress'
   const [filterStatus, setFilterStatus] = useState('');
@@ -42,39 +34,6 @@ const ProgressTracker = () => {
       setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
-    }
-  };
-
-  const createTask = async (e) => {
-    e.preventDefault();
-    if (!newTask.title.trim()) return;
-
-    try {
-      const response = await fetch('http://localhost:5000/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newTask,
-          user_id: user.uid
-        }),
-      });
-
-      if (response.ok) {
-        const task = await response.json();
-        setTasks([...tasks, task]);
-        setNewTask({
-          title: '',
-          description: '',
-          due_date: '',
-          priority: 'medium',
-          category: '',
-          estimated_hours: 1
-        });
-      }
-    } catch (error) {
-      console.error('Error creating task:', error);
     }
   };
 
@@ -164,69 +123,6 @@ const ProgressTracker = () => {
     }
   };
 
-  const renderTaskForm = () => (
-    <div className="task-form">
-      <h3>Add New Task</h3>
-      <form onSubmit={createTask}>
-        <div className="form-group">
-          <input
-            type="text"
-            placeholder="Task Title"
-            value={newTask.title}
-            onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <textarea
-            placeholder="Description"
-            value={newTask.description}
-            onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-          />
-        </div>
-        <div className="form-row">
-          <div className="form-group">
-            <input
-              type="date"
-              value={newTask.due_date}
-              onChange={(e) => setNewTask({...newTask, due_date: e.target.value})}
-            />
-          </div>
-          <div className="form-group">
-            <select
-              value={newTask.priority}
-              onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
-            >
-              <option value="low">Low Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="high">High Priority</option>
-            </select>
-          </div>
-        </div>
-        <div className="form-row">
-          <div className="form-group">
-            <input
-              type="text"
-              placeholder="Category"
-              value={newTask.category}
-              onChange={(e) => setNewTask({...newTask, category: e.target.value})}
-            />
-          </div>
-          <div className="form-group">
-            <input
-              type="number"
-              placeholder="Hours"
-              value={newTask.estimated_hours}
-              onChange={(e) => setNewTask({...newTask, estimated_hours: parseInt(e.target.value) || 1})}
-              min="1"
-            />
-          </div>
-        </div>
-        <button type="submit" className="btn-primary">Add Task</button>
-      </form>
-    </div>
-  );
-
   const renderTaskList = () => (
     <div className="task-list">
       <div className="filters">
@@ -295,6 +191,13 @@ const ProgressTracker = () => {
                   <option value="completed">Completed</option>
                   <option value="overdue">Overdue</option>
                 </select>
+                <input
+                  type="date"
+                  value={task.due_date ? task.due_date.slice(0, 10) : ''}
+                  onChange={e => updateTask(task.id, { due_date: e.target.value })}
+                  style={{ marginLeft: '10px' }}
+                  title="Reschedule task"
+                />
               </div>
             </div>
           )}
@@ -462,12 +365,7 @@ const ProgressTracker = () => {
       </div>
 
       <div className="tracker-content">
-        {view === 'list' && (
-          <>
-            {renderTaskForm()}
-            {renderTaskList()}
-          </>
-        )}
+        {view === 'list' && renderTaskList()}
         {view === 'calendar' && renderCalendarView()}
         {view === 'progress' && renderProgressView()}
       </div>

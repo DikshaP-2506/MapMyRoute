@@ -188,6 +188,29 @@ def save_roadmap(user_id, topic, current_level, duration_weeks, hours_per_week, 
     )
     db.add(roadmap)
     db.commit()
+    # --- Auto-generate tasks from roadmap_json ---
+    start_date = datetime.date.today()
+    for week in roadmap_json.get('weekly_plans', []):
+        week_num = week.get('week', 1)
+        week_start = start_date + datetime.timedelta(weeks=week_num-1)
+        topics = week.get('topics', [])
+        num_topics = len(topics)
+        for i, topic_title in enumerate(topics):
+            # Evenly distribute tasks across the week (Mon-Sun)
+            day_offset = int(i * 7 / max(1, num_topics))
+            due_date = week_start + datetime.timedelta(days=day_offset)
+            task = Task(
+                user_id=user_id,
+                title=topic_title,
+                description='; '.join(week.get('learning_objectives', [])),
+                due_date=due_date,
+                priority='medium',
+                status='pending',
+                category='roadmap',
+                estimated_hours=week.get('estimated_hours', 1)
+            )
+            db.add(task)
+    db.commit()
     db.close()
 
 def save_resource_recommendation(user_id, topic, difficulty_level, resources_json):
