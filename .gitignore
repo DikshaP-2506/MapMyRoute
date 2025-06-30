@@ -1,0 +1,67 @@
+# Node
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.sqlite3
+*.db
+*.db-journal
+
+# Build
+/dist/
+/build/
+
+# Coverage
+coverage/
+*.cover
+*.py,cover
+.hypothesis/
+
+# Test
+.pytest_cache/
+
+# Backup
+*~
+*.bak
+*.tmp
+
+# IDE
+.idea/
+*.iml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Firebase
+*.json
+
+# Misc
+*.swp
+*.swo
+
