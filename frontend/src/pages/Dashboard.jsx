@@ -721,6 +721,36 @@ function WeeklyPlannerTab({ skillPathId }) {
     }
   };
 
+  // Mark task complete or pending
+  const handleTaskComplete = async (taskId) => {
+    const task = safeTasks.find(t => t.id === taskId);
+    if (!task) return;
+    const newStatus = task.status === 'complete' ? 'pending' : 'complete';
+    try {
+      const token = await getAuthToken();
+      const res = await fetch(`http://localhost:8000/planner/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error('Failed to update task status');
+      setRefresh(r => r + 1);
+      if (newStatus === 'complete') {
+        setShowCelebration(true);
+        setToastMsg('Task marked as complete!');
+        showTaskCompleteNotification && showTaskCompleteNotification();
+        setTimeout(() => setShowCelebration(false), 2000);
+      } else {
+        setToastMsg('Task marked as pending.');
+      }
+    } catch (err) {
+      alert('Failed to update task: ' + (err.message || err));
+    }
+  };
+
   // Defensive: try/catch for rendering
   try {
     if (fatalError) {
