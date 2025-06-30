@@ -711,6 +711,10 @@ def export_roadmap(skill_path_id: int, format: str = "pdf", user: UserDB = Depen
     else:  # PDF
         pdf = FPDF()
         pdf.add_page()
+        # App Name Header
+        pdf.set_font("Arial", 'B', 20)
+        pdf.cell(0, 14, "MapMyRoute", ln=True, align='C')
+        pdf.ln(2)
         # Title
         pdf.set_font("Arial", 'B', 18)
         pdf.cell(0, 12, str(path.title), ln=True, align='C')
