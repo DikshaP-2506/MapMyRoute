@@ -110,6 +110,12 @@ function Header({ user, getInitials, hideNavLinks }) {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <nav className="navbar-nav ms-auto gap-lg-3 gap-2 align-items-center">
+            {/* Home button, hidden on landing page */}
+            {window.location.pathname !== "/" && (
+              <Link to="/" className="nav-link text-white">
+                <button className="btn btn-light" style={{ color: TEAL.main, fontWeight: 'bold', marginRight: 8 }}>Home</button>
+              </Link>
+            )}
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
