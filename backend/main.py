@@ -9,7 +9,7 @@ import os
 import requests
 import firebase_admin
 from firebase_admin import auth as firebase_auth, credentials
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text, Date, DateTime, func
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Text, Date, DateTime, func, TIMESTAMP, JSON
 from sqlalchemy.orm import sessionmaker, relationship, Session, declarative_base
 from sqlalchemy.exc import NoResultFound
 import json as pyjson
@@ -64,6 +64,31 @@ class PlannerDB(Base):
     due_date = Column(Date)
     rescheduled_to = Column(Date)  # new column for rescheduling
     skill_path = relationship("SkillPathDB")
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255))
+    description = Column(Text)
+    created_at = Column(TIMESTAMP)
+
+class Question(Base):
+    __tablename__ = "questions"
+    id = Column(Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    question_text = Column(Text)
+    options = Column(JSON)
+    correct_option = Column(String(10))
+    skill_tag = Column(String(100))
+
+class UserQuizAttempt(Base):
+    __tablename__ = "user_quiz_attempts"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    answers = Column(JSON)
+    score = Column(Integer)
+    attempted_at = Column(TIMESTAMP)
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -1097,3 +1122,43 @@ Respond in JSON only.
         })
 
 app.include_router(api_router, prefix="/api")
+
+@app.get("/user/{user_id}/progress")
+def get_user_progress(user_id: int, db: Session = Depends(get_db)):
+    # Example: fetch user progress from your existing tables
+    # Replace with your actual logic
+    progress = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
+    return progress
+
+@app.get("/quiz/personalized/{user_id}")
+def get_personalized_quiz(user_id: int, db: Session = Depends(get_db)):
+    # Fetch user progress
+    progress = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
+    # Example: get relevant skill tags from progress
+    skill_tags = progress.current_skills if progress else []
+    # Fetch questions matching skill tags
+    questions = db.query(Question).filter(Question.skill_tag.in_(skill_tags)).all()
+    # Pick a quiz or create one on the fly
+    quiz = {"title": "Weekly Challenge", "questions": [q for q in questions]}
+    return quiz
+
+@app.post("/quiz/attempt")
+def submit_quiz_attempt(user_id: int, quiz_id: int, answers: dict, db: Session = Depends(get_db)):
+    # Fetch correct answers
+    questions = db.query(Question).filter(Question.quiz_id == quiz_id).all()
+    score = sum(1 for q in questions if answers.get(str(q.id)) == q.correct_option)
+    attempt = UserQuizAttempt(
+        user_id=user_id,
+        quiz_id=quiz_id,
+        answers=answers,
+        score=score,
+        attempted_at=datetime.utcnow()
+    )
+    db.add(attempt)
+    db.commit()
+    return {"score": score, "total": len(questions)}
+
+@app.get("/quiz/history/{user_id}")
+def get_quiz_history(user_id: int, db: Session = Depends(get_db)):
+    attempts = db.query(UserQuizAttempt).filter(UserQuizAttempt.user_id == user_id).all()
+    return attempts

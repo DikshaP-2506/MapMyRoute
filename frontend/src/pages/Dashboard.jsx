@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getAuthToken } from "../utils/auth";
+import { Link } from "react-router-dom";
 
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -536,6 +537,7 @@ function WeeklyPlannerTab({ skillPathId }) {
   const [regenMode, setRegenMode] = useState("");
   const [fatalError, setFatalError] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     if (!skillPathId) return;
@@ -683,9 +685,9 @@ function WeeklyPlannerTab({ skillPathId }) {
               <div style={{ fontWeight: 500 }}>{task.description}</div>
               <div style={{ fontSize: 13, color: TEAL.dark }}>Status: <span style={{ color: task.status === 'complete' ? TEAL.main : (task.due_date < todayStr ? 'red' : TEAL.dark) }}>{task.status === 'complete' ? 'Complete' : (task.due_date < todayStr ? 'Overdue' : task.status)}</span></div>
               {task.status !== 'complete' ? (
-                <button onClick={() => markStatus(task.id, 'complete')} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.main, color: '#fff', border: 'none', marginTop: 4 }}>Mark Complete</button>
+                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.main, color: '#fff', border: 'none', marginTop: 4 }}>Mark Complete</button>
               ) : (
-                <button onClick={() => markStatus(task.id, 'pending')} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.light, color: TEAL.dark, border: 'none', marginTop: 4 }}>Mark Pending</button>
+                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.light, color: TEAL.dark, border: 'none', marginTop: 4 }}>Mark Pending</button>
               )}
             </li>
           ))}
@@ -819,6 +821,24 @@ function WeeklyPlannerTab({ skillPathId }) {
           </div>
         </div>
         {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
+        {showCelebration && (
+          <div style={{
+            position: "fixed",
+            top: "20%",
+            left: "50%",
+            transform: "translate(-50%, 0)",
+            background: "#fff",
+            borderRadius: "16px",
+            padding: "1.5rem 2rem",
+            boxShadow: "0 2px 12px #14b8a622",
+            zIndex: 9999,
+            fontSize: "2rem",
+            color: "#14b8a6",
+            fontWeight: "bold"
+          }}>
+            🎉 Congratulations! Task Completed! 🎉
+          </div>
+        )}
         <style>{`
           .react-calendar__tile.calendar-current-week {
             background: ${TEAL.light} !important;
@@ -944,6 +964,30 @@ function ProgressAnalyticsTab({ skillPathId }) {
       </div>
     </div>
   );
+}
+
+// Add this function to check if today is a weekend
+function isWeekend() {
+  const today = new Date().getDay();
+  return today === 0 || today === 6; // Sunday (0) or Saturday (6)
+}
+
+function showTaskCompleteNotification() {
+  if ("Notification" in window) {
+    if (Notification.permission === "granted") {
+      new Notification("🎉 Task Completed!", {
+        body: "Great job! Keep up the good work!",
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          new Notification("🎉 Task Completed!", {
+            body: "Great job! Keep up the good work!",
+          });
+        }
+      });
+    }
+  }
 }
 
 const Dashboard = () => {
@@ -1082,7 +1126,20 @@ const Dashboard = () => {
           }
         }
       `}</style>
-      {/* <WeeklyPlanner userToken={userToken} /> */}
+      <div style={{ margin: '1.5rem 0', textAlign: 'center' }}>
+        <Link to={isWeekend() ? "/micro-skill-challenge" : "#"} style={{ textDecoration: 'none' }}>
+          <button
+            className="btn btn-primary"
+            disabled={!isWeekend()}
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#14b8a6', border: 'none', borderRadius: '8px', cursor: isWeekend() ? 'pointer' : 'not-allowed', opacity: isWeekend() ? 1 : 0.6 }}
+          >
+            {isWeekend() ? 'Take Your Weekly Quiz & Game Test!' : 'Quiz & Game Test available on Weekends'}
+          </button>
+        </Link>
+        <div style={{ fontSize: '0.95rem', color: '#555', marginTop: '0.5rem' }}>
+          Quizzes and games are personalized based on your completed tasks.
+        </div>
+      </div>
     </div>
   );
 };

@@ -35,7 +35,7 @@ const LandingPage = () => (
               Login
             </button>
           </Link>
-          <Link to="/login" state={{ mode: 'register' }}>
+          <Link to="/signup">
             <button className="btn btn-light fw-semibold" style={{ background: '#fff', color: TEAL.main, border: 'none' }}>
               Sign Up
             </button>

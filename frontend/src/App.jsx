@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import RoadmapViewer from "./pages/RoadmapViewer";
 import Settings from "./pages/Settings";
 import SignupPage from "./pages/SignupPage";
+import MicroSkillChallenge from "./pages/MicroSkillChallenge";
 
 // Add TEAL color palette for use in Header
 const TEAL = {
@@ -85,6 +86,10 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/roadmap/:id" element={<RoadmapViewer />} />
           <Route path="/settings" element={<Settings />} />
+          {/* Only show the micro skill challenge route if user is logged in */}
+          {user && (
+            <Route path="/micro-skill-challenge" element={<MicroSkillChallenge userId={user.uid || user.id} />} />
+          )}
         </Routes>
       </main>
       <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
@@ -105,6 +110,12 @@ function Header({ user, getInitials, hideNavLinks }) {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <nav className="navbar-nav ms-auto gap-lg-3 gap-2 align-items-center">
+            {/* Home button, hidden on landing page */}
+            {window.location.pathname !== "/" && (
+              <Link to="/" className="nav-link text-white">
+                <button className="btn btn-light" style={{ color: TEAL.main, fontWeight: 'bold', marginRight: 8 }}>Home</button>
+              </Link>
+            )}
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
