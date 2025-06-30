@@ -415,6 +415,20 @@ function ResourcesLibraryTab() {
     }
   };
 
+  // Helper to render a section for each resource type
+  const renderSection = (title, items, renderItem) => (
+    <div style={{ marginBottom: '2rem' }}>
+      <h3 style={{ color: TEAL.main, borderBottom: `2px solid ${TEAL.main}`, paddingBottom: '0.5rem' }}>{title}</h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+        {items && items.length > 0 ? items.map(renderItem) : <div style={{ color: '#888' }}>No {title.toLowerCase()} found.</div>}
+      </div>
+    </div>
+  );
+
+  // Helper to sort resources by rank or userRating
+  const sortResources = arr =>
+    arr ? [...arr].sort((a, b) => (b.rank || b.userRating || 0) - (a.rank || a.userRating || 0)) : [];
+
   return (
     <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 style={{ color: TEAL.dark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
@@ -432,60 +446,75 @@ function ResourcesLibraryTab() {
       {error && <div style={{ color: 'red', fontWeight: 'bold' }}>{error}</div>}
       {resources && (
         <>
-          <Section
-            title="Video Tutorials"
-            items={resources.video_tutorials || []}
-            renderItem={(v, idx) => (
+          {renderSection(
+            "Videos",
+            sortResources(resources.videos || resources.video_tutorials || []),
+            (v, idx) => (
               <Card key={idx}>
                 <h4>{v.title}</h4>
-                <p><strong>Platform:</strong> {v.platform}</p>
-                <p><strong>Difficulty:</strong> {v.difficulty}</p>
+                <p><strong>Platform:</strong> {v.platform || v.source}</p>
                 <p><strong>Type:</strong> {v.is_free ? 'Free' : 'Paid'}</p>
-                <a href={v.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Tutorial</a>
+                {v.userRating && <p><strong>User Rating:</strong> {v.userRating}</p>}
+                <a href={v.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Watch</a>
               </Card>
-            )}
-          />
-          <Section
-            title="Online Courses"
-            items={resources.online_courses || []}
-            renderItem={(c, idx) => (
-              <Card key={idx}>
-                <h4>{c.title}</h4>
-                <p><strong>Platform:</strong> {c.platform}</p>
-                <p><strong>Difficulty:</strong> {c.difficulty}</p>
-                <p><strong>Price:</strong> {c.price}</p>
-                <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Course</a>
-              </Card>
-            )}
-          />
-          <Section
-            title="Articles"
-            items={resources.articles || []}
-            renderItem={(a, idx) => (
+            )
+          )}
+          {renderSection(
+            "Articles",
+            sortResources(resources.articles || []),
+            (a, idx) => (
               <Card key={idx}>
                 <h4>{a.title}</h4>
                 <p><strong>Source:</strong> {a.source}</p>
-                <p><strong>Reading Time:</strong> {a.reading_time}</p>
-                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Read Article</a>
+                {a.reading_time && <p><strong>Reading Time:</strong> {a.reading_time}</p>}
+                {a.userRating && <p><strong>User Rating:</strong> {a.userRating}</p>}
+                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Read</a>
               </Card>
-            )}
-          />
-          <Section
-            title="Tools"
-            items={resources.tools || []}
-            renderItem={(t, idx) => (
+            )
+          )}
+          {renderSection(
+            "Courses",
+            sortResources(resources.courses || resources.online_courses || []),
+            (c, idx) => (
               <Card key={idx}>
-                <h4>{t.name}</h4>
-                <p>{t.description}</p>
-                <p><strong>Type:</strong> {t.type}</p>
+                <h4>{c.title}</h4>
+                <p><strong>Platform:</strong> {c.platform}</p>
+                <p><strong>Type:</strong> {c.is_free ? 'Free' : 'Paid'}</p>
+                {c.userRating && <p><strong>User Rating:</strong> {c.userRating}</p>}
+                <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Course</a>
+              </Card>
+            )
+          )}
+          {renderSection(
+            "Books",
+            sortResources(resources.books || []),
+            (b, idx) => (
+              <Card key={idx}>
+                <h4>{b.title}</h4>
+                <p><strong>Author:</strong> {b.author}</p>
+                {b.userRating && <p><strong>User Rating:</strong> {b.userRating}</p>}
+                <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Book</a>
+              </Card>
+            )
+          )}
+          {renderSection(
+            "Tools",
+            sortResources(resources.tools || []),
+            (t, idx) => (
+              <Card key={idx}>
+                <h4>{t.name || t.title || "Unnamed Tool"}</h4>
+                {t.description && <p><strong>Description:</strong> {t.description}</p>}
+                {t.type && <p><strong>Type:</strong> {t.type}</p>}
+                {(t.platform || t.source) && <p><strong>Platform:</strong> {t.platform || t.source}</p>}
+                {t.userRating && <p><strong>User Rating:</strong> {t.userRating}</p>}
                 <a href={t.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Visit Tool</a>
               </Card>
-            )}
-          />
+            )
+          )}
         </>
       )}
       {resources && !loading && !error &&
-        (!resources.video_tutorials?.length && !resources.online_courses?.length && !resources.articles?.length && !resources.tools?.length) && (
+        (!resources.videos?.length && !resources.video_tutorials?.length && !resources.articles?.length && !resources.courses?.length && !resources.online_courses?.length && !resources.books?.length && !resources.tools?.length) && (
           <div>No resources found.</div>
         )}
     </div>

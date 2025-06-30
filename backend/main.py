@@ -24,6 +24,7 @@ import bcrypt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
+import re
 
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mapmyroute")
@@ -897,6 +898,16 @@ def regenerate_week(
 from fastapi import APIRouter
 api_router = APIRouter()
 
+def clean_json_string(json_str):
+    # Remove markdown code block markers
+    json_str = re.sub(r"^```json|```$", "", json_str, flags=re.MULTILINE).strip()
+    # Replace single quotes with double quotes
+    json_str = json_str.replace("'", '"')
+    # Remove trailing commas before } or ]
+    json_str = re.sub(r",\s*([}\]])", r"\1", json_str)
+    # Remove newlines inside objects/arrays (optional, if needed)
+    return json_str
+
 @api_router.post("/get-resources")
 async def get_resources_api(request: Request):
     try:
@@ -905,31 +916,32 @@ async def get_resources_api(request: Request):
         difficulty_level = data.get('difficultyLevel', 'Beginner')
         if not topic:
             return JSONResponse(status_code=400, content={
+                'videos': [],
                 'video_tutorials': [],
-                'online_courses': [],
                 'articles': [],
+                'courses': [],
+                'online_courses': [],
+                'books': [],
                 'tools': [],
                 'error': 'Missing required field: topic'
             })
-        # Use the same Groq logic as /resources but with categorized output
+        # Updated prompt for platform-agnostic, ranked resources
         prompt = f"""
-Recommend learning resources for {topic} at {difficulty_level} level.
-Include a mix of free and paid resources.
-Format the response as a JSON with the following structure:
+For the topic '{topic}', curate and rank the best resources from across the entire internet. Include:
+- Free videos
+- Articles
+- Premium and free courses
+- Books
+- Tools
+For each resource, provide: title, url, type (Free/Paid), platform/source, and a userRating (1-5) or rank (1=best). Group the response as:
 {{
-    "video_tutorials": [
-        {{"title": "", "platform": "", "url": "", "is_free": true, "difficulty": ""}}
-    ],
-    "online_courses": [
-        {{"title": "", "platform": "", "url": "", "price": "", "difficulty": ""}}
-    ],
-    "articles": [
-        {{"title": "", "source": "", "url": "", "reading_time": ""}}
-    ],
-    "tools": [
-        {{"name": "", "description": "", "url": "", "type": "free/paid"}}
-    ]
+  "videos": [{{"title":..., "url":..., "type":..., "platform":..., "userRating":...}}],
+  "articles": [{{...}}],
+  "courses": [{{...}}],
+  "books": [{{"title":..., "url":..., "author":..., "userRating":...}}],
+  "tools": [{{...}}]
 }}
+Respond in JSON only.
 """
         api_key = os.getenv("GROQ_API_KEY")
         headers = {
@@ -942,10 +954,10 @@ Format the response as a JSON with the following structure:
                 {"role": "system", "content": "You are an expert learning resource recommender."},
                 {"role": "user", "content": prompt}
             ],
-            "max_tokens": 800,
+            "max_tokens": 1000,
             "temperature": 0.7
         }
-        import requests, json, re
+        import requests
         try:
             response = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions",
@@ -961,25 +973,39 @@ Format the response as a JSON with the following structure:
                 json_str = match.group(1)
             else:
                 # Try to find first { ... } block
-                match = re.search(r"({\s*\"video_tutorials\".*})", content, re.DOTALL)
+                match = re.search(r"({\s*\"videos\".*})", content, re.DOTALL)
                 if match:
                     json_str = match.group(1)
                 else:
                     json_str = content
+            json_str = clean_json_string(json_str)
             try:
                 resources = json.loads(json_str)
-            except Exception:
-                # Try to fix common JSON issues (single quotes, trailing commas)
-                json_str_fixed = json_str.replace("'", '"')
-                json_str_fixed = re.sub(r",\s*([}\]])", r"\1", json_str_fixed)
-                resources = json.loads(json_str_fixed)
-            # Ensure all keys are present and are lists
+            except Exception as e:
+                print("Failed to parse JSON from Groq response:", e)
+                print("Raw response was:", content)
+                return {
+                    'videos': [],
+                    'video_tutorials': [],
+                    'articles': [],
+                    'courses': [],
+                    'online_courses': [],
+                    'books': [],
+                    'tools': [],
+                    'error': f"Failed to parse resources: {str(e)}",
+                    'raw_response': content
+                }
+            # Ensure all keys are present and are lists (including legacy fields)
             default_resources = {
+                'videos': [],
                 'video_tutorials': [],
-                'online_courses': [],
                 'articles': [],
+                'courses': [],
+                'online_courses': [],
+                'books': [],
                 'tools': []
             }
+            # If AI response has legacy fields, keep them; otherwise, add as empty
             if not isinstance(resources, dict):
                 resources = default_resources
             else:
@@ -990,17 +1016,23 @@ Format the response as a JSON with the following structure:
         except Exception as e:
             print("Resource fetch error (categorized):", e)
             return {
+                'videos': [],
                 'video_tutorials': [],
-                'online_courses': [],
                 'articles': [],
+                'courses': [],
+                'online_courses': [],
+                'books': [],
                 'tools': [],
                 'error': str(e)
             }
     except Exception as e:
         return JSONResponse(status_code=500, content={
+            'videos': [],
             'video_tutorials': [],
-            'online_courses': [],
             'articles': [],
+            'courses': [],
+            'online_courses': [],
+            'books': [],
             'tools': [],
             'error': str(e)
         })
