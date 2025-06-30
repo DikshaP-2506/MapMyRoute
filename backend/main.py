@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Request, HTTPException, Depends, Header, Query
+from fastapi import FastAPI, Request, HTTPException, Depends, Header, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -22,6 +22,8 @@ from fpdf import FPDF
 from jose import JWTError, jwt
 import bcrypt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
+from fastapi import APIRouter
 
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mapmyroute")
@@ -97,6 +99,7 @@ class RoadmapRequest(BaseModel):
     level: str
     time: str
     duration: str
+    goal: Optional[str] = None  # <-- Add this line
 
 class RoadmapWeek(BaseModel):
     week: int
@@ -178,9 +181,12 @@ def parse_json_from_response(text):
 # --- AI Roadmap Generation (Groq) ---
 @app.post("/roadmap/generate", response_model=RoadmapResponse)
 def generate_roadmap(req: RoadmapRequest):
+    # Add goal to the prompt if provided
+    goal_part = f" The end goal is: {req.goal}." if req.goal else ""
     prompt = (
         f"Generate a {req.duration}-week learning roadmap for {req.topic} at {req.level} level. "
-        f"Assume the learner has {req.time} available per week. "
+        f"Assume the learner has {req.time} available per week."
+        f"{goal_part} "
         "For each week, list 2-4 specific learning goals or tasks. Respond in JSON as: "
         "{title, description, weeks: [{week, goals: [..]}]}"
     )
@@ -189,7 +195,7 @@ def generate_roadmap(req: RoadmapRequest):
         {"role": "user", "content": prompt}
     ]
     try:
-        content = call_groq(messages)
+        content = call_groq(messages, model="llama-3.3-70b-versatile")
         parsed = parse_json_from_response(content)
         return RoadmapResponse(**parsed)
     except Exception as e:
@@ -282,7 +288,7 @@ def create_skill_path(body: SkillPathCreate, user: UserDB = Depends(get_current_
             {"role": "user", "content": prompt}
         ]
         try:
-            content = call_groq(messages)
+            content = call_groq(messages, model="llama-3.3-70b-versatile")
             daily_tasks = parse_json_from_response(content)
             if not isinstance(daily_tasks, list) or len(daily_tasks) != 7:
                 raise ValueError("AI did not return 7 daily tasks.")
@@ -317,11 +323,18 @@ def get_skill_path(id: int, user: UserDB = Depends(get_current_user), db: Sessio
     path = db.query(SkillPathDB).filter_by(id=id, user_id=user.id).first()
     if not path:
         raise HTTPException(status_code=404, detail="Skill path not found")
+    # Defensive: ensure data is valid JSON and has weeks as a list
+    try:
+        data = pyjson.loads(str(path.data)) if path.data is not None else None
+        if not data or not isinstance(data, dict) or "weeks" not in data or not isinstance(data["weeks"], list):
+            data = {"weeks": []}
+    except Exception:
+        data = {"weeks": []}
     return {
         "id": path.id,
         "title": str(path.title),
         "description": str(path.description),
-        "data": pyjson.loads(str(path.data)) if path.data is not None else None,
+        "data": data,
         "created_at": path.created_at
     }
 
@@ -463,7 +476,6 @@ def patch_planner_task(id: int, body: PlannerTaskUpdate, user: UserDB = Depends(
     }
 
 # --- Batch shift endpoint for pending tasks in current week ---
-from fastapi import Body
 from pydantic import conint
 
 class ShiftPendingTasksRequest(BaseModel):
@@ -563,7 +575,7 @@ def get_analytics_suggestions(skill_path_id: int, user: UserDB = Depends(get_cur
         "Content-Type": "application/json"
     }
     data = {
-        "model": "mixtral-8x7b-32768",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": "You are an expert learning coach."},
             {"role": "user", "content": prompt}
@@ -595,14 +607,14 @@ def get_resources(topic: Optional[str] = None):
         f"List the best online resources (courses, videos, articles) for learning {topic}. "
         "Include links from Udemy, YouTube, Coursera, freeCodeCamp, and other reputable sites. "
         "For each, provide: title, url, type (Free/Paid), difficulty, and platform. "
-        "Respond ONLY in JSON as an array: [{\"title\":..., \"url\":..., \"type\":..., \"difficulty\":..., \"platform\":...}]"
+        "Respond in JSON as [{\"title\":..., \"url\":..., \"type\":..., \"difficulty\":..., \"platform\":...}]."
     )
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     data = {
-        "model": "mixtral-8x7b-32768",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": "You are an expert learning resource recommender."},
             {"role": "user", "content": prompt}
@@ -651,7 +663,6 @@ def get_resources(topic: Optional[str] = None):
         return {"resources": resources}
     except Exception as e:
         print("Resource fetch error:", e)
-        print("Groq response content:", content if 'content' in locals() else '')
         return {"resources": [], "error": str(e)}
 
 # --- Export & Account ---
@@ -772,7 +783,7 @@ def generate_weekly_plan(skill_path_id: int, user: UserDB = Depends(get_current_
         "Content-Type": "application/json"
     }
     data = {
-        "model": "mixtral-8x7b-32768",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": "You are an expert learning coach."},
             {"role": "user", "content": prompt}
@@ -794,3 +805,204 @@ def generate_weekly_plan(skill_path_id: int, user: UserDB = Depends(get_current_
     except Exception as e:
         # Fallback: just return the original roadmap weeks
         return {"weekly_plan": roadmap.get("weeks", []), "error": str(e)}
+
+from fastapi import Body
+
+class RegenerateWeekRequest(BaseModel):
+    skill_path_id: int
+    week: int
+    mode: str  # "deeper" or "easier"
+
+@app.post("/planner/regenerate_week")
+def regenerate_week(
+    body: RegenerateWeekRequest = Body(...),
+    user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Fetch the skill path and week data
+    path = db.query(SkillPathDB).filter_by(id=body.skill_path_id, user_id=user.id).first()
+    if not path:
+        raise HTTPException(status_code=404, detail="Skill path not found")
+    roadmap = pyjson.loads(str(path.data)) if path.data is not None else {}
+    week_obj = None
+    for w in roadmap.get("weeks", []):
+        if w.get("week") == body.week:
+            week_obj = w
+            break
+    if not week_obj:
+        raise HTTPException(status_code=404, detail="Week not found in roadmap")
+    # Compose prompt for Groq
+    if body.mode == "deeper":
+        prompt = (
+            f"Given this learning week for {path.title}: {week_obj['goals']}, expand and go deeper. "
+            "Break down each goal into more advanced sub-topics or tasks. Respond as a JSON list of new goals."
+        )
+    else:
+        prompt = (
+            f"Given this learning week for {path.title}: {week_obj['goals']}, make it easier and more beginner-friendly. "
+            "Break down each goal into simpler sub-tasks or easier steps. Respond as a JSON list of new goals."
+        )
+    messages = [
+        {"role": "system", "content": "You are an expert learning coach."},
+        {"role": "user", "content": prompt}
+    ]
+    try:
+        content = call_groq(messages, model="llama-3.3-70b-versatile")
+        new_goals = parse_json_from_response(content)
+        if not isinstance(new_goals, list):
+            raise Exception("AI did not return a list")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Groq error: {str(e)}")
+    # Update roadmap in DB
+    for w in roadmap.get("weeks", []):
+        if w.get("week") == body.week:
+            w["goals"] = new_goals
+    path.data = pyjson.dumps(roadmap)
+    db.commit()
+    # Remove old planner tasks for this week
+    db.query(PlannerDB).filter_by(skill_path_id=path.id, week=body.week).delete()
+    # Recreate planner tasks for the week (distribute new goals over 7 days)
+    start_date = date.today() + timedelta(weeks=body.week-1)
+    # Use AI to break down into 7 daily tasks
+    prompt = (
+        f"Given these goals for Week {body.week}: {new_goals}, break them down into 7 daily tasks (one for each day, Monday to Sunday). "
+        "Respond as a JSON list of 7 strings."
+    )
+    messages = [
+        {"role": "system", "content": "You are an expert learning coach."},
+        {"role": "user", "content": prompt}
+    ]
+    try:
+        content = call_groq(messages, model="llama-3.3-70b-versatile")
+        daily_tasks = parse_json_from_response(content)
+        if not isinstance(daily_tasks, list) or len(daily_tasks) != 7:
+            raise Exception("AI did not return 7 daily tasks")
+    except Exception:
+        # fallback: repeat goals
+        daily_tasks = []
+        for i in range(7):
+            daily_tasks.append(new_goals[i % len(new_goals)] if new_goals else f"Task {i+1}")
+    for i, daily_task in enumerate(daily_tasks):
+        due_date = start_date + timedelta(days=i)
+        task = PlannerDB(
+            skill_path_id=path.id,
+            week=body.week,
+            description=daily_task,
+            due_date=due_date
+        )
+        db.add(task)
+    db.commit()
+    return {"week": body.week, "new_goals": new_goals}
+
+from fastapi import APIRouter
+api_router = APIRouter()
+
+@api_router.post("/get-resources")
+async def get_resources_api(request: Request):
+    try:
+        data = await request.json()
+        topic = data.get('topic')
+        difficulty_level = data.get('difficultyLevel', 'Beginner')
+        if not topic:
+            return JSONResponse(status_code=400, content={
+                'video_tutorials': [],
+                'online_courses': [],
+                'articles': [],
+                'tools': [],
+                'error': 'Missing required field: topic'
+            })
+        # Use the same Groq logic as /resources but with categorized output
+        prompt = f"""
+Recommend learning resources for {topic} at {difficulty_level} level.
+Include a mix of free and paid resources.
+Format the response as a JSON with the following structure:
+{{
+    "video_tutorials": [
+        {{"title": "", "platform": "", "url": "", "is_free": true, "difficulty": ""}}
+    ],
+    "online_courses": [
+        {{"title": "", "platform": "", "url": "", "price": "", "difficulty": ""}}
+    ],
+    "articles": [
+        {{"title": "", "source": "", "url": "", "reading_time": ""}}
+    ],
+    "tools": [
+        {{"name": "", "description": "", "url": "", "type": "free/paid"}}
+    ]
+}}
+"""
+        api_key = os.getenv("GROQ_API_KEY")
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data_groq = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": "You are an expert learning resource recommender."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 800,
+            "temperature": 0.7
+        }
+        import requests, json, re
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers=headers,
+                json=data_groq,
+                timeout=60
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            # Try to extract JSON from markdown/code block if present
+            match = re.search(r"```json\s*(.*?)```", content, re.DOTALL)
+            if match:
+                json_str = match.group(1)
+            else:
+                # Try to find first { ... } block
+                match = re.search(r"({\s*\"video_tutorials\".*})", content, re.DOTALL)
+                if match:
+                    json_str = match.group(1)
+                else:
+                    json_str = content
+            try:
+                resources = json.loads(json_str)
+            except Exception:
+                # Try to fix common JSON issues (single quotes, trailing commas)
+                json_str_fixed = json_str.replace("'", '"')
+                json_str_fixed = re.sub(r",\s*([}\]])", r"\1", json_str_fixed)
+                resources = json.loads(json_str_fixed)
+            # Ensure all keys are present and are lists
+            default_resources = {
+                'video_tutorials': [],
+                'online_courses': [],
+                'articles': [],
+                'tools': []
+            }
+            if not isinstance(resources, dict):
+                resources = default_resources
+            else:
+                for key in default_resources:
+                    if key not in resources or not isinstance(resources[key], list):
+                        resources[key] = []
+            return resources
+        except Exception as e:
+            print("Resource fetch error (categorized):", e)
+            return {
+                'video_tutorials': [],
+                'online_courses': [],
+                'articles': [],
+                'tools': [],
+                'error': str(e)
+            }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={
+            'video_tutorials': [],
+            'online_courses': [],
+            'articles': [],
+            'tools': [],
+            'error': str(e)
+        })
+
+app.include_router(api_router, prefix="/api")

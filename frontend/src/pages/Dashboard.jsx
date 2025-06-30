@@ -40,7 +40,28 @@ const tabs = [
   "Resources Library"
 ];
 
-// ...existing code...
+// Simple Toast component
+function Toast({ message, onClose }) {
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 20,
+      right: 20,
+      background: '#14b8a6',
+      color: '#fff',
+      padding: '12px 24px',
+      borderRadius: 8,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      zIndex: 9999,
+      fontWeight: 600,
+      fontSize: '1rem',
+    }}>{message}</div>
+  );
+}
 
 function MySkillPathsTab() {
   const [paths, setPaths] = useState([]);
@@ -48,6 +69,7 @@ function MySkillPathsTab() {
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [expandedPathId, setExpandedPathId] = useState(null);
+  const [roadmapDetails, setRoadmapDetails] = useState({}); // roadmap data by path id
 
   const fetchPaths = async () => {
     setLoading(true);
@@ -67,7 +89,31 @@ function MySkillPathsTab() {
     }
   };
 
+  // Fetch roadmap details for a path when expanded
+  const fetchRoadmapDetails = async (id) => {
+    try {
+      const token = await getAuthToken();
+      const res = await fetch(`http://localhost:8000/skill-paths/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to fetch roadmap details");
+      const data = await res.json();
+      setRoadmapDetails(prev => ({ ...prev, [id]: data }));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Remove the await from the button click handler to avoid race condition with setExpandedPathId
+  // Always fetch roadmap details in useEffect when expandedPathId changes
   useEffect(() => { fetchPaths(); }, [refresh]);
+
+  useEffect(() => {
+    if (expandedPathId) {
+      fetchRoadmapDetails(expandedPathId);
+    }
+    // eslint-disable-next-line
+  }, [expandedPathId]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this skill path?")) return;
@@ -129,7 +175,13 @@ function MySkillPathsTab() {
               </div>
               <div className="d-flex flex-column gap-2 ms-md-3 mt-2 mt-md-0" style={{alignItems: 'flex-end'}}>
                 <button
-                  onClick={() => setExpandedPathId(expandedPathId === path.id ? null : path.id)}
+                  onClick={() => {
+                    if (expandedPathId !== path.id) {
+                      setExpandedPathId(path.id);
+                    } else {
+                      setExpandedPathId(null);
+                    }
+                  }}
                   className="btn"
                   style={{ background: TEAL.main, color: '#fff', border: 'none', minWidth: 90 }}
                 >
@@ -145,17 +197,37 @@ function MySkillPathsTab() {
               </div>
             </div>
             {/* Roadmap details */}
-            {expandedPathId === path.id && path.data && path.data.weeks && (
+            {expandedPathId === path.id && roadmapDetails[path.id] && roadmapDetails[path.id].data && Array.isArray(roadmapDetails[path.id].data.weeks) && roadmapDetails[path.id].data.weeks.length > 0 && (
               <div style={{ marginTop: 16, background: '#fff', borderRadius: 10, boxShadow: `0 1px 6px ${TEAL.shadow}`, padding: 16 }}>
                 <h5 style={{ color: TEAL.accent, marginBottom: 8 }}>Full Roadmap</h5>
-                {path.data.weeks.map((week, idx) => (
+                {roadmapDetails[path.id].data.weeks.map((week, idx) => (
                   <div key={idx} style={{ marginBottom: 12 }}>
                     <strong style={{ color: TEAL.main }}>Week {week.week}</strong>
                     <ul style={{ paddingLeft: 18 }}>
-                      {week.goals.map((goal, i) => <li key={i}>{goal}</li>)}
+                      {Array.isArray(week.goals) && week.goals.map((goal, i) => (
+                        <li key={i}>
+                          {typeof goal === 'object'
+                            ? goal.topic
+                              ? <>
+                                  <div><strong>{goal.topic}</strong></div>
+                                  {Array.isArray(goal.subtopics) && (
+                                    <ul>
+                                      {goal.subtopics.map((sub, j) => <li key={j}>{sub}</li>)}
+                                    </ul>
+                                  )}
+                                </>
+                              : JSON.stringify(goal)
+                            : goal}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 ))}
+              </div>
+            )}
+            {expandedPathId === path.id && roadmapDetails[path.id] && roadmapDetails[path.id].data && (!Array.isArray(roadmapDetails[path.id].data.weeks) || roadmapDetails[path.id].data.weeks.length === 0) && (
+              <div style={{ marginTop: 16, color: 'red' }}>
+                No roadmap data found for this skill path.
               </div>
             )}
           </li>
@@ -171,11 +243,13 @@ function RoadmapGeneratorTab() {
     level: 'Beginner',
     time: '',
     duration: '',
+    goal: '', // <-- Add goal field
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [saveMsg, setSaveMsg] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -217,19 +291,16 @@ function RoadmapGeneratorTab() {
       const token = await getAuthToken();
       const res = await fetch("http://localhost:8000/skill-paths", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           title: result.title,
           description: result.description,
-          data: { weeks: result.weeks }
+          data: result
         })
       });
       if (!res.ok) throw new Error("Failed to save skill path");
       setSaveMsg("Saved to My Skill Paths!");
-      // Optionally: trigger planner refresh if needed
+      setToastMsg("Roadmap saved to skill path!");
     } catch (err) {
       setSaveMsg(err.message);
     }
@@ -246,7 +317,26 @@ function RoadmapGeneratorTab() {
           <option>Advanced</option>
         </select>
         <input name="time" placeholder="Time availability (hours/week)" value={form.time} onChange={handleChange} required style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
-        <input name="duration" placeholder="Duration (weeks)" value={form.duration} onChange={handleChange} required style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
+        <input
+          name="duration"
+          placeholder="Duration (weeks)"
+          value={form.duration}
+          onChange={handleChange}
+          required
+          style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
+        />
+        {/* Outcome/Goal dropdown */}
+        <select
+          name="goal"
+          value={form.goal}
+          onChange={handleChange}
+          style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
+        >
+          <option value="">Select Outcome (optional)</option>
+          <option value="Build a portfolio">Build a portfolio</option>
+          <option value="Get ready for an interview">Get ready for an interview</option>
+          <option value="Freelance this skill">Freelance this skill</option>
+        </select>
         <button type="submit" style={{ background: TEAL.main, color: '#fff', border: 'none', borderRadius: 8, padding: '0.75rem', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }} disabled={loading}>
           {loading ? 'Generating...' : 'Generate Roadmap'}
         </button>
@@ -271,27 +361,53 @@ function RoadmapGeneratorTab() {
           {saveMsg && <div style={{ color: saveMsg.startsWith('Saved') ? TEAL.main : 'red', marginTop: '1rem' }}>{saveMsg}</div>}
         </div>
       )}
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
+    </div>
+  );
+}
+
+function Section({ title, items, renderItem }) {
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <h3 style={{ color: TEAL.main, borderBottom: `2px solid ${TEAL.main}`, paddingBottom: '0.5rem' }}>{title}</h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+        {items && items.length > 0 ? items.map(renderItem) : <div style={{ color: '#888' }}>No {title.toLowerCase()} found.</div>}
+      </div>
+    </div>
+  );
+}
+
+function Card({ children }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: '10px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: '1.2rem', minWidth: '250px', maxWidth: '350px', flex: '1 1 250px' }}>
+      {children}
     </div>
   );
 }
 
 function ResourcesLibraryTab() {
-  const [resources, setResources] = useState([]);
+  const [resources, setResources] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState({ type: '', difficulty: '', platform: '', topic: '' });
-  const [searchTopic, setSearchTopic] = useState('');
+  const [searchTopic, setSearchTopic] = useState("");
+  const [difficulty, setDifficulty] = useState("");
 
-  const fetchResources = async (topic) => {
+  const handleTopicInput = e => setSearchTopic(e.target.value);
+  const handleDifficultyChange = e => setDifficulty(e.target.value);
+
+  const handleSearch = async () => {
     setLoading(true);
     setError("");
+    setResources(null);
     try {
-      let url = "http://localhost:8000/resources";
-      if (topic) url += `?topic=${encodeURIComponent(topic)}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch resources");
+      const res = await fetch("http://localhost:8000/api/get-resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: searchTopic, difficultyLevel: difficulty || "Beginner" })
+      });
       const data = await res.json();
-      setResources(data.resources);
+      if (!res.ok || data.error) throw new Error(data.error || "Failed to fetch resources");
+      setResources(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -299,60 +415,79 @@ function ResourcesLibraryTab() {
     }
   };
 
-  const handleFilterChange = e => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
-  };
-
-  const handleTopicInput = e => {
-    setSearchTopic(e.target.value);
-  };
-
-  const handleSearch = () => {
-    setFilters(f => ({ ...f, topic: searchTopic }));
-    fetchResources(searchTopic);
-  };
-
-  const filtered = resources.filter(r =>
-    (!filters.type || r.type === filters.type) &&
-    (!filters.difficulty || r.difficulty === filters.difficulty) &&
-    (!filters.platform || r.platform === filters.platform)
-  );
-
   return (
     <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 style={{ color: TEAL.dark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 220 }} />
         <button onClick={handleSearch} disabled={loading || !searchTopic.trim()} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: TEAL.main, color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '1rem', minWidth: 90 }}>Search</button>
-        <select name="type" value={filters.type} onChange={handleFilterChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
-          <option value="">All Types</option>
-          <option value="Free">Free</option>
-          <option value="Paid">Paid</option>
-        </select>
-        <select name="difficulty" value={filters.difficulty} onChange={handleFilterChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
+        <select name="difficulty" value={difficulty} onChange={handleDifficultyChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
           <option value="">All Levels</option>
           <option value="Beginner">Beginner</option>
           <option value="Intermediate">Intermediate</option>
-        </select>
-        <select name="platform" value={filters.platform} onChange={handleFilterChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
-          <option value="">All Platforms</option>
-          <option value="Web">Web</option>
-          <option value="YouTube">YouTube</option>
+          <option value="Advanced">Advanced</option>
         </select>
       </div>
       {loading && <div style={{ color: TEAL.main, fontWeight: 'bold' }}>Searching resources...</div>}
       {error && <div style={{ color: 'red', fontWeight: 'bold' }}>{error}</div>}
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {filtered.map((r, i) => (
-          <li key={i} style={{ marginBottom: '1.5rem', borderBottom: `1px solid ${TEAL.light}`, paddingBottom: '1rem', background: TEAL.lighter, borderRadius: 8, boxSizing: 'border-box', paddingLeft: 12, paddingRight: 12 }}>
-            <div style={{ fontWeight: 'bold', fontSize: 'clamp(1rem, 2vw, 1.1rem)', color: TEAL.dark }}>{r.title}</div>
-            <div style={{ color: TEAL.main, marginBottom: '0.5rem', wordBreak: 'break-all' }}>{r.url}</div>
-            <div style={{ fontSize: '0.98em' }}>Type: {r.type} | Difficulty: {r.difficulty} | Platform: {r.platform}</div>
-            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, textDecoration: 'underline', fontSize: '0.98em' }}>Visit</a>
-          </li>
-        ))}
-      </ul>
-      {filtered.length === 0 && !loading && <div>No resources found.</div>}
+      {resources && (
+        <>
+          <Section
+            title="Video Tutorials"
+            items={resources.video_tutorials || []}
+            renderItem={(v, idx) => (
+              <Card key={idx}>
+                <h4>{v.title}</h4>
+                <p><strong>Platform:</strong> {v.platform}</p>
+                <p><strong>Difficulty:</strong> {v.difficulty}</p>
+                <p><strong>Type:</strong> {v.is_free ? 'Free' : 'Paid'}</p>
+                <a href={v.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Tutorial</a>
+              </Card>
+            )}
+          />
+          <Section
+            title="Online Courses"
+            items={resources.online_courses || []}
+            renderItem={(c, idx) => (
+              <Card key={idx}>
+                <h4>{c.title}</h4>
+                <p><strong>Platform:</strong> {c.platform}</p>
+                <p><strong>Difficulty:</strong> {c.difficulty}</p>
+                <p><strong>Price:</strong> {c.price}</p>
+                <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Course</a>
+              </Card>
+            )}
+          />
+          <Section
+            title="Articles"
+            items={resources.articles || []}
+            renderItem={(a, idx) => (
+              <Card key={idx}>
+                <h4>{a.title}</h4>
+                <p><strong>Source:</strong> {a.source}</p>
+                <p><strong>Reading Time:</strong> {a.reading_time}</p>
+                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Read Article</a>
+              </Card>
+            )}
+          />
+          <Section
+            title="Tools"
+            items={resources.tools || []}
+            renderItem={(t, idx) => (
+              <Card key={idx}>
+                <h4>{t.name}</h4>
+                <p>{t.description}</p>
+                <p><strong>Type:</strong> {t.type}</p>
+                <a href={t.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Visit Tool</a>
+              </Card>
+            )}
+          />
+        </>
+      )}
+      {resources && !loading && !error &&
+        (!resources.video_tutorials?.length && !resources.online_courses?.length && !resources.articles?.length && !resources.tools?.length) && (
+          <div>No resources found.</div>
+        )}
     </div>
   );
 }
@@ -367,58 +502,58 @@ function WeeklyPlannerTab({ skillPathId }) {
   const [refresh, setRefresh] = useState(0);
   const [shifting, setShifting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [regenWeek, setRegenWeek] = useState("");
+  const [regenMode, setRegenMode] = useState("");
+  const [fatalError, setFatalError] = useState(null);
+  const [toastMsg, setToastMsg] = useState("");
 
   useEffect(() => {
     if (!skillPathId) return;
     setLoading(true);
     setError(null);
+    setFatalError(null);
     (async () => {
       try {
         const token = await getAuthToken();
         const res = await fetch(`http://localhost:8000/planner?skill_path_id=${skillPathId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        if (!res.ok) throw new Error("Failed to fetch planner tasks");
         const data = await res.json();
-        setTasks(data);
+        setTasks(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
         setLoading(false);
       }
     })();
   }, [skillPathId, refresh]);
 
-  // Helper: get today's date string (YYYY-MM-DD)
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Defensive helpers
+  const safeTasks = Array.isArray(tasks) ? tasks.filter(t => t && typeof t === 'object') : [];
+  const safeWeekNumbers = Array.from(new Set(safeTasks.map(t => Number(t.week)).filter(w => !isNaN(w)))).sort((a, b) => a - b);
 
-  // Helper: get the latest due_date in all tasks
-  const getLatestDueDate = () => {
-    let maxDate = null;
-    tasks.forEach(task => {
-      if (task.due_date) {
-        const d = new Date(task.due_date);
-        if (!maxDate || d > maxDate) maxDate = d;
-      }
-    });
-    return maxDate;
-  };
-
-  // Shift all pending tasks in the current week to the next available days (batch backend)
-  const shiftPendingTasks = async () => {
-    // Find all tasks in the current week
-    const weekTasks = tasks.filter(t => t.week === currentWeek);
-    if (weekTasks.length === 0) {
-      alert('No tasks found for the current week.');
-      return;
+  // Defensive: get current week
+  let currentWeek = null;
+  for (const week of safeWeekNumbers) {
+    const weekTasks = safeTasks.filter(t => Number(t.week) === week);
+    if (weekTasks.some(t => t.status !== 'complete')) {
+      currentWeek = week;
+      break;
     }
-    // If all tasks in the current week are complete, do not shift
-    if (weekTasks.every(t => t.status === 'complete')) {
-      alert('All tasks in the current week are complete. No pending tasks to shift.');
+  }
+  if (!currentWeek && safeWeekNumbers.length > 0) currentWeek = safeWeekNumbers[0];
+
+  // Define shiftPendingTasks here
+  const shiftPendingTasks = async () => {
+    if (!skillPathId || !currentWeek) {
+      alert('No skill path or current week selected.');
       return;
     }
     setShifting(true);
-    const token = await getAuthToken();
     try {
+      const token = await getAuthToken();
       const res = await fetch('http://localhost:8000/planner/shift_pending', {
         method: 'POST',
         headers: {
@@ -431,7 +566,7 @@ function WeeklyPlannerTab({ skillPathId }) {
         })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to shift tasks');
+      if (!res.ok) throw new Error(data.detail || data.message || 'Failed to shift tasks');
       alert(data.message || `Shifted ${data.shifted} pending tasks.`);
       setRefresh(r => r + 1);
     } catch (err) {
@@ -441,46 +576,33 @@ function WeeklyPlannerTab({ skillPathId }) {
     }
   };
 
-  const markStatus = async (taskId, status) => {
-    const token = await getAuthToken();
-    await fetch(`http://localhost:8000/planner/${taskId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ status })
-    });
-    setTasks(tasks => tasks.map(t => t.id === taskId ? { ...t, status } : t));
-    setTimeout(() => setRefresh(r => r + 1), 300);
-  };
-
-  // Group tasks by date (YYYY-MM-DD)
+  // Defensive: group tasks by date
   const tasksByDate = {};
-  tasks.forEach(task => {
+  safeTasks.forEach(task => {
     if (task.due_date) {
-      if (!tasksByDate[task.due_date]) tasksByDate[task.due_date] = [];
-      tasksByDate[task.due_date].push(task);
+      const dateStr = typeof task.due_date === 'string' ? task.due_date : '';
+      if (dateStr) {
+        if (!tasksByDate[dateStr]) tasksByDate[dateStr] = [];
+        tasksByDate[dateStr].push(task);
+      }
     }
   });
 
-  // Find all weeks in the roadmap
-  const weekNumbers = Array.from(new Set(tasks.map(t => t.week))).sort((a, b) => Number(a) - Number(b));
-  // Find the first week with incomplete tasks, or the first week if all are complete
-  let currentWeek = null;
-  for (const week of weekNumbers) {
-    const weekTasks = tasks.filter(t => t.week === week);
-    if (weekTasks.some(t => t.status !== 'complete')) {
-      currentWeek = week;
-      break;
-    }
-  }
-  if (!currentWeek && weekNumbers.length > 0) currentWeek = weekNumbers[0];
-
-  // Find all dates in the roadmap
-  const allDates = tasks.map(t => t.due_date).filter(Boolean);
+  // Defensive: find all dates
+  const allDates = safeTasks.map(t => t.due_date).filter(Boolean);
   const minDate = allDates.length ? new Date(Math.min(...allDates.map(d => new Date(d)))) : null;
   const maxDate = allDates.length ? new Date(Math.max(...allDates.map(d => new Date(d)))) : null;
+
+  // Defensive: today's date string
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Defensive: error message rendering
+  const getErrorMessage = (err) => {
+    if (!err) return '';
+    if (typeof err === 'string') return err;
+    if (err.message) return err.message;
+    return JSON.stringify(err);
+  };
 
   // Calendar tile content and highlight logic
   const tileContent = ({ date, view }) => {
@@ -492,10 +614,10 @@ function WeeklyPlannerTab({ skillPathId }) {
     return null;
   };
 
+  // Calendar tile className logic for highlighting current week
   const tileClassName = ({ date, view }) => {
     if (view !== 'month') return '';
     const dateStr = date.toISOString().slice(0, 10);
-    // Highlight current week
     if (tasksByDate[dateStr]) {
       const week = tasksByDate[dateStr][0].week;
       if (week === currentWeek) {
@@ -544,53 +666,152 @@ function WeeklyPlannerTab({ skillPathId }) {
     );
   };
 
-  if (!skillPathId) {
-    return <div style={{ color: 'red', margin: '2rem 0' }}>Please select a skill path to view your weekly plan.</div>;
-  }
-  if (loading) return <div>Loading weekly planner...</div>;
-  if (error) return <div>Error loading planner: {error.message}</div>;
-  if (!tasks.length) return <div>No tasks found for this skill path.</div>;
+  // Regenerate week for deeper/easier learning
+  const regenerateWeek = async (mode, weekNum) => {
+    setRegenLoading(true);
+    try {
+      const token = await getAuthToken();
+      await fetch("http://localhost:8000/planner/regenerate_week", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ skill_path_id: skillPathId, week: weekNum, mode })
+      });
+      setRefresh(r => r + 1);
+      setToastMsg(`Tasks updated for week ${weekNum} (${mode === 'deeper' ? 'Deeper' : 'Easier'})!`);
+    } catch (err) {
+      alert("Failed to regenerate week: " + err.message);
+    } finally {
+      setRegenLoading(false);
+      setRegenWeek("");
+      setRegenMode("");
+    }
+  };
 
-  return (
-    <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
-      <h2 style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center', marginBottom: 8 }}>Weekly Planner</h2>
-      <h3 style={{ fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)', textAlign: 'center', marginBottom: 16 }}>Roadmap Calendar</h3>
-      <button onClick={shiftPendingTasks} disabled={shifting} style={{ marginBottom: 16, background: '#ffb347', color: '#333', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', maxWidth: 260, display: 'block', marginLeft: 'auto', marginRight: 'auto', fontSize: '1rem' }}>
-        {shifting ? 'Shifting...' : 'Shift Pending Tasks'}
-      </button>
-      <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', marginBottom: 32 }}>
-        <Calendar
-          minDate={minDate}
-          maxDate={maxDate}
-          tileContent={tileContent}
-          tileClassName={tileClassName}
-          onClickDay={dateObj => {
-            setSelectedDate(dateObj instanceof Date ? dateObj : null);
-          }}
-        />
-        {/* Tooltip for selected day */}
-        {renderTooltip()}
+  // Defensive: try/catch for rendering
+  try {
+    if (fatalError) {
+      return <div style={{ color: 'red', margin: '2rem 0' }}>Unexpected error: {getErrorMessage(fatalError)}</div>;
+    }
+    if (!skillPathId) {
+      return <div style={{ color: 'red', margin: '2rem 0' }}>Please select a skill path to view your weekly plan.</div>;
+    }
+    if (loading) return <div>Loading weekly planner...</div>;
+    if (error) return <div>Error loading planner: {getErrorMessage(error)}</div>;
+    if (!safeTasks.length) return <div>No tasks found for this skill path.</div>;
+
+    return (
+      <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+        <h2 style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center', marginBottom: 8 }}>Weekly Planner</h2>
+        <h3 style={{ fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)', textAlign: 'center', marginBottom: 16 }}>Roadmap Calendar</h3>
+        <button onClick={shiftPendingTasks} disabled={shifting} style={{ marginBottom: 16, background: '#ffb347', color: '#333', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', maxWidth: 260, display: 'block', marginLeft: 'auto', marginRight: 'auto', fontSize: '1rem' }}>
+          {shifting ? 'Shifting...' : 'Shift Pending Tasks'}
+        </button>
+        <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', marginBottom: 32 }}>
+            <Calendar
+              minDate={minDate}
+              maxDate={maxDate}
+              tileContent={tileContent}
+              tileClassName={tileClassName}
+              onClickDay={dateObj => {
+                setSelectedDate(dateObj instanceof Date ? dateObj : null);
+              }}
+            />
+          {/* Tooltip for selected day */}
+          {renderTooltip()}
+        </div>
+        {/* Regenerative Learning Path controls */}
+        <div style={{ margin: "1.5rem 0", textAlign: "center" }}>
+          <div style={{ display: "inline-block", marginRight: 24 }}>
+            <button
+              onClick={() => setRegenMode("deeper")}
+              disabled={regenLoading}
+              style={{ background: TEAL.accent, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
+            >
+              Want to go deeper into the tasks?
+            </button>
+            {regenMode === "deeper" && (
+              <select
+                value={regenWeek}
+                onChange={e => setRegenWeek(e.target.value)}
+                style={{ marginLeft: 8, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px" }}
+                disabled={regenLoading}
+              >
+                <option value="">Select week</option>
+                {safeWeekNumbers.map(weekNum => (
+                  <option key={weekNum} value={weekNum}>Week {weekNum}</option>
+                ))}
+              </select>
+            )}
+            {regenMode === "deeper" && regenWeek && (
+              <button
+                onClick={() => regenerateWeek("deeper", Number(regenWeek))}
+                disabled={regenLoading}
+                style={{ marginLeft: 8, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
+              >
+                Apply
+              </button>
+            )}
+          </div>
+          <div style={{ display: "inline-block" }}>
+            <button
+              onClick={() => setRegenMode("easier")}
+              disabled={regenLoading}
+              style={{ background: TEAL.light, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
+            >
+              Struggling? Easier path
+            </button>
+            {regenMode === "easier" && (
+              <select
+                value={regenWeek}
+                onChange={e => setRegenWeek(e.target.value)}
+                style={{ marginLeft: 8, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px" }}
+                disabled={regenLoading}
+              >
+                <option value="">Select week</option>
+                {safeWeekNumbers.map(weekNum => (
+                  <option key={weekNum} value={weekNum}>Week {weekNum}</option>
+                ))}
+              </select>
+            )}
+            {regenMode === "easier" && regenWeek && (
+              <button
+                onClick={() => regenerateWeek("easier", Number(regenWeek))}
+                disabled={regenLoading}
+                style={{ marginLeft: 8, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
+              >
+                Apply
+              </button>
+            )}
+          </div>
+        </div>
+        {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
+        <style>{`
+          .react-calendar__tile.calendar-current-week {
+            background: ${TEAL.light} !important;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px ${TEAL.shadow};
+          }
+          @media (max-width: 700px) {
+            .react-calendar {
+              width: 100% !important;
+              font-size: 0.95em;
+            }
+          }
+          @media (max-width: 500px) {
+            .react-calendar {
+              font-size: 0.85em;
+            }
+          }
+        `}</style>
       </div>
-      <style>{`
-        .react-calendar__tile.calendar-current-week {
-          background: ${TEAL.light} !important;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px ${TEAL.shadow};
-        }
-        @media (max-width: 700px) {
-          .react-calendar {
-            width: 100% !important;
-            font-size: 0.95em;
-          }
-        }
-        @media (max-width: 500px) {
-          .react-calendar {
-            font-size: 0.85em;
-          }
-        }
-      `}</style>
-    </div>
-  );
+    );
+  } catch (err) {
+    setFatalError(err instanceof Error ? err : new Error(String(err)));
+    return <div style={{ color: 'red', margin: '2rem 0' }}>Unexpected error: {getErrorMessage(err)}</div>;
+  }
 }
 
 function ProgressAnalyticsTab({ skillPathId }) {
