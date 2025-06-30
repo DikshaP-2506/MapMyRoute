@@ -8,6 +8,17 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import RoadmapViewer from "./pages/RoadmapViewer";
 import Settings from "./pages/Settings";
+import SignupPage from "./pages/SignupPage";
+
+// Add TEAL color palette for use in Header
+const TEAL = {
+  main: '#14b8a6',
+  light: '#99f6e4',
+  lighter: '#f0fdfa',
+  dark: '#0f766e',
+  accent: '#2dd4bf',
+  shadow: '#14b8a622',
+};
 
 function App() {
   const [user, setUser] = useState(null);
@@ -50,7 +61,10 @@ function App() {
 
   return (
     <Router>
-      <Header user={user} getInitials={getInitials} hideNavLinks={hideNavLinks} />
+      {/* Only show Header on non-landing pages */}
+      {window.location.pathname !== "/" && (
+        <Header user={user} getInitials={getInitials} hideNavLinks={hideNavLinks} />
+      )}
       <main
         style={{
           maxWidth: '100vw',
@@ -67,12 +81,13 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/roadmap/:id" element={<RoadmapViewer />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
-      <footer className="bg-primary text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)'}}>
+      <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
         &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
       </footer>
     </Router>
@@ -82,9 +97,9 @@ function App() {
 function Header({ user, getInitials, hideNavLinks }) {
   const navigate = useNavigate();
   return (
-    <header className="navbar navbar-expand-lg navbar-dark bg-primary shadow mb-4">
+    <header className="navbar navbar-expand-lg shadow mb-4" style={{ background: TEAL.main }}>
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand fs-3 fw-bold">MapMyRoute</Link>
+        <Link to="/" className="navbar-brand fs-3 fw-bold" style={{ color: '#fff' }}>MapMyRoute</Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -93,7 +108,6 @@ function Header({ user, getInitials, hideNavLinks }) {
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
-                {/* No Settings link, avatar instead */}
               </>
             )}
             {user ? (
