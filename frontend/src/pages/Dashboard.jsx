@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getAuthToken } from "../utils/auth";
+import { Link } from "react-router-dom";
 
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -946,6 +947,12 @@ function ProgressAnalyticsTab({ skillPathId }) {
   );
 }
 
+// Add this function to check if today is a weekend
+function isWeekend() {
+  const today = new Date().getDay();
+  return today === 0 || today === 6; // Sunday (0) or Saturday (6)
+}
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [paths, setPaths] = useState([]);
@@ -1082,7 +1089,20 @@ const Dashboard = () => {
           }
         }
       `}</style>
-      {/* <WeeklyPlanner userToken={userToken} /> */}
+      <div style={{ margin: '1.5rem 0', textAlign: 'center' }}>
+        <Link to={isWeekend() ? "/micro-skill-challenge" : "#"} style={{ textDecoration: 'none' }}>
+          <button
+            className="btn btn-primary"
+            disabled={!isWeekend()}
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#14b8a6', border: 'none', borderRadius: '8px', cursor: isWeekend() ? 'pointer' : 'not-allowed', opacity: isWeekend() ? 1 : 0.6 }}
+          >
+            {isWeekend() ? 'Take Your Weekly Quiz & Game Test!' : 'Quiz & Game Test available on Weekends'}
+          </button>
+        </Link>
+        <div style={{ fontSize: '0.95rem', color: '#555', marginTop: '0.5rem' }}>
+          Quizzes and games are personalized based on your completed tasks.
+        </div>
+      </div>
     </div>
   );
 };

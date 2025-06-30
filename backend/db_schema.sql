@@ -30,3 +30,31 @@ CREATE TABLE IF NOT EXISTS planner (
     due_date DATE,
     rescheduled_to DATE -- new column for rescheduling
 );
+
+-- quizzes table
+CREATE TABLE IF NOT EXISTS quizzes (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- questions table
+CREATE TABLE IF NOT EXISTS questions (
+    id SERIAL PRIMARY KEY,
+    quiz_id INTEGER REFERENCES quizzes(id),
+    question_text TEXT,
+    options JSONB, -- e.g. ["A", "B", "C", "D"]
+    correct_option VARCHAR(10),
+    skill_tag VARCHAR(100) -- for personalization
+);
+
+-- user_quiz_attempts table
+CREATE TABLE IF NOT EXISTS user_quiz_attempts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    quiz_id INTEGER REFERENCES quizzes(id),
+    answers JSONB, -- e.g. {"1": "A", "2": "C"}
+    score INTEGER,
+    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
