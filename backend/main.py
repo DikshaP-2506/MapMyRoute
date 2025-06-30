@@ -25,6 +25,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 import re
+import urllib.parse
 
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mapmyroute")
@@ -1162,3 +1163,147 @@ def submit_quiz_attempt(user_id: int, quiz_id: int, answers: dict, db: Session =
 def get_quiz_history(user_id: int, db: Session = Depends(get_db)):
     attempts = db.query(UserQuizAttempt).filter(UserQuizAttempt.user_id == user_id).all()
     return attempts
+
+ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID")
+ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY")
+ADZUNA_COUNTRY = "in"  # India
+ADZUNA_BASE_URL = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1"
+ADZUNA_CATEGORIES_URL = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/categories"
+ADZUNA_LOCATIONS_URL = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/locations/1"
+
+# Helper to call Adzuna API for job search
+def adzuna_job_search(skill, location, results=10):
+    params = {
+        "app_id": ADZUNA_APP_ID,
+        "app_key": ADZUNA_APP_KEY,
+        "results_per_page": results,
+        "what": skill,
+        "where": location,
+        "content-type": "application/json"
+    }
+    url = ADZUNA_BASE_URL + "?" + urllib.parse.urlencode(params)
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        return resp.json().get("results", [])
+    return []
+
+# Helper to call Adzuna API for salary benchmarking
+def adzuna_salary_benchmark(role, location):
+    params = {
+        "app_id": ADZUNA_APP_ID,
+        "app_key": ADZUNA_APP_KEY,
+        "what": role,
+        "where": location,
+        "content-type": "application/json"
+    }
+    url = ADZUNA_BASE_URL + "?" + urllib.parse.urlencode(params)
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        jobs = resp.json().get("results", [])
+        salaries = [j.get("salary_is_predicted") == "1" and float(j.get("salary_max", 0)) for j in jobs if j.get("salary_max")]
+        if salaries:
+            avg_salary = sum(salaries) / len(salaries)
+            return {"average_salary": avg_salary, "sample_size": len(salaries)}
+    return {"average_salary": None, "sample_size": 0}
+
+# Helper to get skill relevance score
+def adzuna_skill_relevance(skills, location, results=50):
+    skill_scores = {}
+    for skill in skills:
+        jobs = adzuna_job_search(skill, location, results)
+        skill_scores[skill] = len(jobs)
+    return skill_scores
+
+@app.get("/api/job-postings")
+def get_job_postings(skill: str, location: str = "India", results: int = 10):
+    """Get live job postings from Adzuna for a skill and location."""
+    postings = adzuna_job_search(skill, location, results)
+    return {"postings": postings}
+
+@app.get("/api/salary-benchmark")
+def get_salary_benchmark(role: str, location: str = "India"):
+    """Get average salary for a role in a location from Adzuna."""
+    data = adzuna_salary_benchmark(role, location)
+    return data
+
+@app.get("/api/skill-relevance")
+def get_skill_relevance(skills: str, location: str = "India", results: int = 50):
+    """Get demand score for each skill based on job postings from Adzuna."""
+    skill_list = [s.strip() for s in skills.split(",") if s.strip()]
+    scores = adzuna_skill_relevance(skill_list, location, results)
+    return {"relevance": scores}
+
+@app.get("/api/job-categories")
+def get_job_categories():
+    """Get job categories from Adzuna for India."""
+    params = {
+        "app_id": ADZUNA_APP_ID,
+        "app_key": ADZUNA_APP_KEY,
+        "content-type": "application/json"
+    }
+    url = ADZUNA_CATEGORIES_URL + "?" + urllib.parse.urlencode(params)
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        return resp.json().get("results", [])
+    return []
+
+def fetch_adzuna_locations(level_url=None, depth=1, max_depth=3):
+    """Recursively fetch sublocations from Adzuna up to max_depth."""
+    if not level_url:
+        level_url = ADZUNA_LOCATIONS_URL
+    params = {
+        "app_id": ADZUNA_APP_ID,
+        "app_key": ADZUNA_APP_KEY,
+        "content-type": "application/json"
+    }
+    url = level_url + "?" + urllib.parse.urlencode(params)
+    print(f"Fetching locations from: {url}")
+    resp = requests.get(url)
+    print(f"Status code: {resp.status_code}")
+    print(f"Response: {resp.text[:500]}")  # Print first 500 chars
+    if resp.status_code != 200:
+        return []
+    results = resp.json().get("results", [])
+    flat = []
+    for loc in results:
+        flat.append({"tag": loc.get("tag"), "display_name": loc.get("display_name")})
+        # If there are sublocations and we haven't reached max_depth, fetch them
+        if loc.get("locations") and depth < max_depth:
+            for sub in loc["locations"]:
+                sub_url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/locations/{sub['tag']}"
+                flat.extend(fetch_adzuna_locations(sub_url, depth+1, max_depth))
+    return flat
+
+@app.get("/api/job-locations")
+def get_job_locations():
+    # Use GeoNames API for Indian cities
+    username = "sakshi_thorat"
+    url = f"http://api.geonames.org/searchJSON?country=IN&featureClass=P&maxRows=1000&username={username}"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        data = resp.json()
+        # Return a list of dicts with tag and display_name
+        return [
+            {"tag": city["name"].lower().replace(' ', '-'), "display_name": city["name"]}
+            for city in data.get("geonames", [])
+        ]
+    return []
+
+@app.get("/api/user-skills/{user_id}")
+def get_user_skills(user_id: int, db: Session = Depends(get_db)):
+    # Get all skill paths for the user
+    paths = db.query(SkillPathDB).filter_by(user_id=user_id).all()
+    acquired = []
+    in_progress = []
+    for p in paths:
+        total = db.query(PlannerDB).filter_by(skill_path_id=p.id).count()
+        completed = db.query(PlannerDB).filter_by(skill_path_id=p.id, status="complete").count()
+        # Use the skill path title as the skill name
+        skill_name = str(p.title)
+        if total == 0:
+            continue
+        if completed == total:
+            acquired.append(skill_name)
+        elif completed > 0:
+            in_progress.append(skill_name)
+    return {"acquired": acquired, "in_progress": in_progress}

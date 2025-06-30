@@ -1157,6 +1157,14 @@ const Dashboard = () => {
         }
       `}</style>
       <div style={{ margin: '1.5rem 0', textAlign: 'center' }}>
+        <Link to="/career-insights" style={{ textDecoration: 'none' }}>
+          <button
+            className="btn btn-info"
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#2dd4bf', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 'bold', marginRight: '1rem' }}
+          >
+            Career Insights
+          </button>
+        </Link>
         <Link to={isWeekend() ? "/micro-skill-challenge" : "#"} style={{ textDecoration: 'none' }}>
           <button
             className="btn btn-primary"

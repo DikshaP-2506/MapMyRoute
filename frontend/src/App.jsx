@@ -10,6 +10,7 @@ import RoadmapViewer from "./pages/RoadmapViewer";
 import Settings from "./pages/Settings";
 import SignupPage from "./pages/SignupPage";
 import MicroSkillChallenge from "./pages/MicroSkillChallenge";
+import CareerInsights from "./pages/CareerInsights";
 
 // Add TEAL color palette for use in Header
 const TEAL = {
@@ -90,6 +91,7 @@ function App() {
           {user && (
             <Route path="/micro-skill-challenge" element={<MicroSkillChallenge userId={user.uid || user.id} />} />
           )}
+          <Route path="/career-insights" element={<CareerInsights />} />
         </Routes>
       </main>
       <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
