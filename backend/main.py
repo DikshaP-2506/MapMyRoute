@@ -1320,3 +1320,106 @@ def get_user_skills(user_id: int, db: Session = Depends(get_db)):
         elif completed > 0:
             in_progress.append(skill_name)
     return {"acquired": acquired, "in_progress": in_progress}
+
+@app.get("/roadmap/suggestions/{user_id}")
+def get_roadmap_suggestions(user_id: int, db: Session = Depends(get_db)):
+    # Find missed tasks
+    missed_tasks = db.query(PlannerDB).join(SkillPathDB).filter(
+        SkillPathDB.user_id == user_id,
+        PlannerDB.status != "complete",
+        PlannerDB.due_date < date.today()
+    ).all()
+    suggestions = []
+    if missed_tasks:
+        suggestions.append(f"You have {len(missed_tasks)} missed tasks. Consider combining them into this week or rescheduling.")
+    else:
+        suggestions.append("Great job! Consider taking on extra practice or exploring advanced topics.")
+    return {"suggestions": suggestions}
+
+@app.post("/roadmap/recalculate/{user_id}")
+def recalculate_roadmap(user_id: int, db: Session = Depends(get_db)):
+    # Find all missed tasks (not complete, due date in the past)
+    missed_tasks = db.query(PlannerDB).join(SkillPathDB).filter(
+        SkillPathDB.user_id == user_id,
+        PlannerDB.status != "complete",
+        PlannerDB.due_date < date.today()
+    ).all()
+    if not missed_tasks:
+        return {"message": "No missed tasks to reschedule."}
+    # Find the latest due date among all tasks for this user
+    latest_due = db.query(PlannerDB.due_date).join(SkillPathDB).filter(
+        SkillPathDB.user_id == user_id
+    ).order_by(PlannerDB.due_date.desc()).first()
+    if latest_due and latest_due[0]:
+        start_date = latest_due[0] + timedelta(days=1)
+    else:
+        start_date = date.today()
+    # Move each missed task to a new week after the latest due date
+    for i, task in enumerate(missed_tasks):
+        # Assign to the next week (spread out missed tasks)
+        new_due = start_date + timedelta(days=i)
+        task.due_date = new_due
+        # Optionally, update week number (find the week number for new_due)
+        task.week = new_due.isocalendar()[1]
+        db.add(task)
+    db.commit()
+    return {"message": f"Rescheduled {len(missed_tasks)} missed tasks to future weeks."}
+
+@app.post("/roadmap/ai-recalculate/{user_id}")
+def ai_recalculate_roadmap(user_id: int, db: Session = Depends(get_db)):
+    # Gather all skill paths for the user
+    paths = db.query(SkillPathDB).filter_by(user_id=user_id).all()
+    updated_count = 0
+    for path in paths:
+        # Load roadmap data
+        try:
+            data = pyjson.loads(str(path.data)) if path.data is not None else None
+            if not data or not isinstance(data, dict) or "weeks" not in data or not isinstance(data["weeks"], list):
+                continue
+        except Exception:
+            continue
+        # Get all planner tasks for this path
+        tasks = db.query(PlannerDB).filter_by(skill_path_id=path.id).all()
+        completed = [t for t in tasks if t.status == "complete"]
+        missed = [t for t in tasks if t.status != "complete" and t.due_date and t.due_date < date.today()]
+        pending = [t for t in tasks if t.status != "complete" and (not t.due_date or t.due_date >= date.today())]
+        # Prepare a summary for AI
+        prompt = (
+            f"The user is working on the skill path '{path.title}'. "
+            f"Completed tasks: {len(completed)}. Missed tasks: {len(missed)}. Pending tasks: {len(pending)}. "
+            f"Here are the pending and missed tasks: {[t.description for t in missed + pending]}. "
+            "Please intelligently redistribute these tasks over the next weeks, compressing if the user is ahead or stretching if behind. "
+            "Return a JSON list of weeks, each with a list of tasks."
+        )
+        messages = [
+            {"role": "system", "content": "You are an expert learning coach."},
+            {"role": "user", "content": prompt}
+        ]
+        try:
+            content = call_groq(messages, model="llama-3.3-70b-versatile")
+            weeks = parse_json_from_response(content)
+            if not isinstance(weeks, list):
+                continue
+        except Exception:
+            continue
+        # Remove all non-complete tasks from planner
+        for t in missed + pending:
+            db.delete(t)
+        db.commit()
+        # Add new tasks from AI plan
+        today = date.today()
+        for i, week in enumerate(weeks):
+            week_num = i + 1
+            week_tasks = week if isinstance(week, list) else week.get("tasks", [])
+            for j, desc in enumerate(week_tasks):
+                due_date = today + timedelta(weeks=i, days=j)
+                task = PlannerDB(
+                    skill_path_id=path.id,
+                    week=week_num,
+                    description=desc,
+                    due_date=due_date
+                )
+                db.add(task)
+        db.commit()
+        updated_count += 1
+    return {"message": f"AI intelligently updated {updated_count} skill path(s) with a new roadmap."}

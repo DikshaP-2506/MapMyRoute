@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import SignupPage from "./pages/SignupPage";
 import MicroSkillChallenge from "./pages/MicroSkillChallenge";
 import CareerInsights from "./pages/CareerInsights";
+import LandbotWidgetLoader from "./LandbotWidgetLoader";
 
 // Add TEAL color palette for use in Header
 const TEAL = {
@@ -62,42 +63,45 @@ function App() {
   const hideNavLinks = location === "/";
 
   return (
-    <Router>
-      {/* Only show Header on non-landing pages */}
-      {window.location.pathname !== "/" && (
-        <Header user={user} getInitials={getInitials} hideNavLinks={hideNavLinks} />
-      )}
-      <main
-        style={{
-          maxWidth: '100vw',
-          width: '100vw',
-          //margin: '2rem auto',
-          background: '#fff',
-          borderRadius: '20px',
-          boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
-          //padding: 'min(2.5rem, 5vw)',
-          minHeight: '350px',
-          boxSizing: 'border-box',
-        }}
-      >
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/roadmap/:id" element={<RoadmapViewer />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* Only show the micro skill challenge route if user is logged in */}
-          {user && (
-            <Route path="/micro-skill-challenge" element={<MicroSkillChallenge userId={user.uid || user.id} />} />
-          )}
-          <Route path="/career-insights" element={<CareerInsights />} />
-        </Routes>
-      </main>
-      <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
-        &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
-      </footer>
-    </Router>
+    <>
+      <Router>
+        {/* Only show Header on non-landing pages */}
+        {window.location.pathname !== "/" && (
+          <Header user={user} getInitials={getInitials} hideNavLinks={hideNavLinks} />
+        )}
+        <main
+          style={{
+            maxWidth: '100vw',
+            width: '100vw',
+            //margin: '2rem auto',
+            background: '#fff',
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
+            //padding: 'min(2.5rem, 5vw)',
+            minHeight: '350px',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/roadmap/:id" element={<RoadmapViewer />} />
+            <Route path="/settings" element={<Settings />} />
+            {/* Only show the micro skill challenge route if user is logged in */}
+            {user && (
+              <Route path="/micro-skill-challenge" element={<MicroSkillChallenge userId={user.uid || user.id} />} />
+            )}
+            <Route path="/career-insights" element={<CareerInsights />} />
+          </Routes>
+        </main>
+        <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
+          &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
+        </footer>
+      </Router>
+      <LandbotWidgetLoader />
+    </>
   );
 }
 

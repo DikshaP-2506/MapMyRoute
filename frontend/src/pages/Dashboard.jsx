@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAuthToken } from "../utils/auth";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -1020,6 +1021,38 @@ function showTaskCompleteNotification() {
   }
 }
 
+const userId = 1; // TODO: Replace with actual user ID logic
+
+function AdjustRoadmapButton() {
+  const [msg, setMsg] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+  const handleAdjust = async () => {
+    const confirmed = window.confirm(
+      "This will intelligently update your roadmap using AI, compressing or stretching your plan based on your progress. Are you sure you want to proceed?"
+    );
+    if (!confirmed) return;
+    setLoading(true);
+    setMsg("");
+    try {
+      const res = await axios.post(`http://127.0.0.1:8000/roadmap/ai-recalculate/${userId}`);
+      setMsg(res.data.message || "Roadmap intelligently updated.");
+    } catch (err) {
+      setMsg("Failed to update roadmap.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ background: '#e0f7fa', borderRadius: 12, padding: '1.2rem', margin: '1.5rem 0', boxShadow: '0 1px 6px #14b8a622', textAlign: 'center' }}>
+      <button className="btn btn-info" style={{ fontWeight: 'bold', background: '#2dd4bf', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.5rem' }} onClick={handleAdjust} disabled={loading}>
+        {loading ? 'Adjusting...' : 'Intelligently Adjust Roadmap'}
+      </button>
+      {msg && <div style={{ color: '#0f766e', marginTop: 8 }}>{msg}</div>}
+    </div>
+  );
+}
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [paths, setPaths] = useState([]);
@@ -1074,6 +1107,7 @@ const Dashboard = () => {
       >
         Dashboard
       </h2>
+      <AdjustRoadmapButton />
       {/* Skill Path Selector for Planner/Analytics */}
       {(activeTab === 1 || activeTab === 2) && (
         <div style={{ textAlign: 'center', margin: '1rem 0' }}>
