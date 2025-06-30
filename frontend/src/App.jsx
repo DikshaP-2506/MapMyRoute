@@ -25,7 +25,19 @@ function App() {
           </div>
         </div>
       </header>
-      <main className="container my-4 px-2" style={{maxWidth: 1200}}>
+      <main
+        style={{
+          maxWidth: '100vw',
+          width: '100vw',
+          margin: '2rem auto',
+          background: '#fff',
+          borderRadius: '20px',
+          boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
+          padding: 'min(2.5rem, 5vw)',
+          minHeight: '350px',
+          boxSizing: 'border-box',
+        }}
+      >
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
