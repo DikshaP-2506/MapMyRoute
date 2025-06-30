@@ -14,8 +14,6 @@ const TEAL = {
   shadow: '#14b8a622',
 };
 
-// ...existing code...
-
 const LoginPage = () => {
   const [user, setUser] = useState(null);
   const [backendUser, setBackendUser] = useState(null);
@@ -66,8 +64,11 @@ const LoginPage = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Failed");
-      // Save token and redirect
+      // Save token and user info for App.jsx avatar
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user_email", form.email);
+      if (form.name) localStorage.setItem("user_name", form.name);
+      // Redirect to dashboard
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);

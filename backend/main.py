@@ -589,13 +589,13 @@ def get_analytics_suggestions(skill_path_id: int, user: UserDB = Depends(get_cur
 def get_resources(topic: Optional[str] = None):
     import os, requests
     api_key = os.getenv("GROQ_API_KEY")
-    if not topic:
+    if not topic or not topic.strip():
         return {"resources": []}
     prompt = (
         f"List the best online resources (courses, videos, articles) for learning {topic}. "
         "Include links from Udemy, YouTube, Coursera, freeCodeCamp, and other reputable sites. "
         "For each, provide: title, url, type (Free/Paid), difficulty, and platform. "
-        "Respond in JSON as [{title, url, type, difficulty, platform}]."
+        "Respond ONLY in JSON as an array: [{\"title\":..., \"url\":..., \"type\":..., \"difficulty\":..., \"platform\":...}]"
     )
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -615,16 +615,43 @@ def get_resources(topic: Optional[str] = None):
             "https://api.groq.com/openai/v1/chat/completions",
             headers=headers,
             json=data,
-            timeout=30
+            timeout=60
         )
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
-        print("AI raw content:", content)
-        resources = pyjson.loads(content)
-        print("Parsed resources:", resources)  
+        # Try to extract JSON from markdown/code block if present
+        import re
+        match = re.search(r"```json\s*(.*?)```", content, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+        else:
+            # Try to find first [ ... ] block
+            match = re.search(r"(\[\s*{.*?}\s*\])", content, re.DOTALL)
+            if match:
+                json_str = match.group(1)
+            else:
+                json_str = content
+        try:
+            resources = json.loads(json_str)
+        except Exception:
+            # Try to fix common JSON issues (single quotes, trailing commas)
+            json_str_fixed = json_str.replace("'", '"')
+            json_str_fixed = re.sub(r",\s*}", "}", json_str_fixed)
+            json_str_fixed = re.sub(r",\s*]", "]", json_str_fixed)
+            resources = json.loads(json_str_fixed)
+        # Ensure it's a list of dicts with required keys
+        if not isinstance(resources, list):
+            resources = []
+        else:
+            filtered = []
+            for r in resources:
+                if isinstance(r, dict) and "title" in r and "url" in r:
+                    filtered.append(r)
+            resources = filtered
         return {"resources": resources}
     except Exception as e:
         print("Resource fetch error:", e)
+        print("Groq response content:", content if 'content' in locals() else '')
         return {"resources": [], "error": str(e)}
 
 # --- Export & Account ---
