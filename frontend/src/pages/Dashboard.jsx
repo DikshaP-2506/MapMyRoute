@@ -738,7 +738,8 @@ function WeeklyPlannerTab({ skillPathId }) {
         <button onClick={shiftPendingTasks} disabled={shifting} style={{ marginBottom: 16, background: '#ffb347', color: '#333', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', maxWidth: 260, display: 'block', marginLeft: 'auto', marginRight: 'auto', fontSize: '1rem' }}>
           {shifting ? 'Shifting...' : 'Shift Pending Tasks'}
         </button>
-        <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', marginBottom: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', marginBottom: 32 }}>
             <Calendar
               minDate={minDate}
               maxDate={maxDate}
@@ -748,72 +749,73 @@ function WeeklyPlannerTab({ skillPathId }) {
                 setSelectedDate(dateObj instanceof Date ? dateObj : null);
               }}
             />
-          {/* Tooltip for selected day */}
-          {renderTooltip()}
-        </div>
-        {/* Regenerative Learning Path controls */}
-        <div style={{ margin: "1.5rem 0", textAlign: "center" }}>
-          <div style={{ display: "inline-block", marginRight: 24 }}>
-            <button
-              onClick={() => setRegenMode("deeper")}
-              disabled={regenLoading}
-              style={{ background: TEAL.accent, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
-            >
-              Want to go deeper into the tasks?
-            </button>
-            {regenMode === "deeper" && (
-              <select
-                value={regenWeek}
-                onChange={e => setRegenWeek(e.target.value)}
-                style={{ marginLeft: 8, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px" }}
-                disabled={regenLoading}
-              >
-                <option value="">Select week</option>
-                {safeWeekNumbers.map(weekNum => (
-                  <option key={weekNum} value={weekNum}>Week {weekNum}</option>
-                ))}
-              </select>
-            )}
-            {regenMode === "deeper" && regenWeek && (
-              <button
-                onClick={() => regenerateWeek("deeper", Number(regenWeek))}
-                disabled={regenLoading}
-                style={{ marginLeft: 8, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
-              >
-                Apply
-              </button>
-            )}
+            {/* Tooltip for selected day */}
+            {renderTooltip()}
           </div>
-          <div style={{ display: "inline-block" }}>
-            <button
-              onClick={() => setRegenMode("easier")}
-              disabled={regenLoading}
-              style={{ background: TEAL.light, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
-            >
-              Struggling? Easier path
-            </button>
-            {regenMode === "easier" && (
-              <select
-                value={regenWeek}
-                onChange={e => setRegenWeek(e.target.value)}
-                style={{ marginLeft: 8, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px" }}
-                disabled={regenLoading}
-              >
-                <option value="">Select week</option>
-                {safeWeekNumbers.map(weekNum => (
-                  <option key={weekNum} value={weekNum}>Week {weekNum}</option>
-                ))}
-              </select>
-            )}
-            {regenMode === "easier" && regenWeek && (
+          {/* Regenerative Learning Path controls - now centered and close to calendar */}
+          <div style={{ minWidth: 180, flex: '0 0 180px', marginTop: 0, marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: '100%' }}>
               <button
-                onClick={() => regenerateWeek("easier", Number(regenWeek))}
+                onClick={() => setRegenMode("deeper")}
                 disabled={regenLoading}
-                style={{ marginLeft: 8, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer" }}
+                style={{ background: TEAL.accent, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
               >
-                Apply
+                Want to go deeper into the tasks?
               </button>
-            )}
+              {regenMode === "deeper" && (
+                <select
+                  value={regenWeek}
+                  onChange={e => setRegenWeek(e.target.value)}
+                  style={{ marginTop: 4, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
+                  disabled={regenLoading}
+                >
+                  <option value="">Select week</option>
+                  {safeWeekNumbers.map(weekNum => (
+                    <option key={weekNum} value={weekNum}>Week {weekNum}</option>
+                  ))}
+                </select>
+              )}
+              {regenMode === "deeper" && regenWeek && (
+                <button
+                  onClick={() => regenerateWeek("deeper", Number(regenWeek))}
+                  disabled={regenLoading}
+                  style={{ marginTop: 4, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                >
+                  Apply
+                </button>
+              )}
+            </div>
+            <div style={{ width: '100%' }}>
+              <button
+                onClick={() => setRegenMode("easier")}
+                disabled={regenLoading}
+                style={{ background: TEAL.light, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+              >
+                Struggling? Easier path
+              </button>
+              {regenMode === "easier" && (
+                <select
+                  value={regenWeek}
+                  onChange={e => setRegenWeek(e.target.value)}
+                  style={{ marginTop: 4, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
+                  disabled={regenLoading}
+                >
+                  <option value="">Select week</option>
+                  {safeWeekNumbers.map(weekNum => (
+                    <option key={weekNum} value={weekNum}>Week {weekNum}</option>
+                  ))}
+                </select>
+              )}
+              {regenMode === "easier" && regenWeek && (
+                <button
+                  onClick={() => regenerateWeek("easier", Number(regenWeek))}
+                  disabled={regenLoading}
+                  style={{ marginTop: 4, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                >
+                  Apply
+                </button>
+              )}
+            </div>
           </div>
         </div>
         {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
@@ -869,6 +871,29 @@ function ProgressAnalyticsTab({ skillPathId }) {
     })();
   }, [skillPathId]);
 
+  // Helper to render suggestions as a structured list
+  function renderSuggestions(text) {
+    if (!text) return 'No suggestions available.';
+    // Try to split by newlines, dashes, or numbers
+    let lines = text
+      .split(/\n|\r|\u2022|\-/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && !/^ai suggestions/i.test(line));
+    // Remove any markdown bold (**text**) or <strong> tags
+    lines = lines.map(line => line.replace(/\*\*(.*?)\*\*/g, '$1').replace(/<strong>(.*?)<\/strong>/gi, '$1'));
+    if (lines.length > 0) {
+      // Always show up to 3 points as a bulleted list
+      const top3 = lines.slice(0, 3);
+      return (
+        <ul style={{ margin: 0, paddingLeft: 20 }}>
+          {top3.map((line, idx) => <li key={idx}>{line}</li>)}
+        </ul>
+      );
+    }
+    // Fallback: plain text
+    return <span>{text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/<strong>(.*?)<\/strong>/gi, '$1')}</span>;
+  }
+
   if (loading || !stats) return <div>Loading analytics...</div>;
 
   const pieData = [
@@ -914,7 +939,7 @@ function ProgressAnalyticsTab({ skillPathId }) {
       <div style={{ marginTop: 24 }}>
         <h4 style={{ color: TEAL.dark, fontSize: 'clamp(1.05rem, 1.5vw, 1.2rem)' }}>AI Suggestions for Improvement</h4>
         <div style={{ background: TEAL.lighter, padding: 16, borderRadius: 8, fontSize: '1em' }}>
-          {suggestions ? suggestions : 'No suggestions available.'}
+          {renderSuggestions(suggestions)}
         </div>
       </div>
     </div>
