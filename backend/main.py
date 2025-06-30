@@ -711,16 +711,25 @@ def export_roadmap(skill_path_id: int, format: str = "pdf", user: UserDB = Depen
     else:  # PDF
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, str(path.title), ln=True, align='C')
-        pdf.multi_cell(0, 10, str(path.description or ""))
+        # Title
+        pdf.set_font("Arial", 'B', 18)
+        pdf.cell(0, 12, str(path.title), ln=True, align='C')
+        pdf.ln(2)
+        # Description (italic)
+        pdf.set_font("Arial", 'I', 12)
+        pdf.multi_cell(0, 10, str(path.description or ""), align='C')
+        pdf.ln(4)
+        # Roadmap weeks
         for week in roadmap.get("weeks", []):
-            pdf.set_font("Arial", style="B", size=12)
+            pdf.set_font("Arial", 'B', 14)
+            pdf.ln(4)
             pdf.cell(0, 10, f"Week {week['week']}", ln=True)
-            pdf.set_font("Arial", size=12)
+            pdf.set_font("Arial", '', 12)
             for goal in week["goals"]:
-                pdf.cell(0, 10, f"- {goal}", ln=True)
-        pdf_output = io.BytesIO(pdf.output(dest='S'))
+                pdf.cell(10)  # indent
+                pdf.set_font("Arial", '', 12)
+                pdf.cell(0, 8, f"- {goal}", ln=True)
+        pdf_output = io.BytesIO(pdf.output(dest='S').encode('latin1'))
         return StreamingResponse(pdf_output, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=roadmap_{skill_path_id}.pdf"})
 
 @app.delete("/user/delete")
