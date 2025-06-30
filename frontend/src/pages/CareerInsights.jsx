@@ -233,17 +233,6 @@ const CareerInsights = () => {
           <div style={{ color: '#888' }}>[Skill demand/relevance scores will appear here]</div>
         )}
       </section>
-      <section style={{ marginBottom: '2rem' }}>
-        <h4>Salary Benchmarking</h4>
-        {salaryBenchmark && salaryBenchmark.average_salary ? (
-          <div style={{ color: '#0f766e', fontWeight: 'bold' }}>
-            Average Salary for <b>{jobTitle.trim() !== "" ? jobTitle : selectedCategory}</b> in <b>India</b>: ₹{Math.round(salaryBenchmark.average_salary).toLocaleString()}
-            <span style={{ color: '#888', fontWeight: 'normal', marginLeft: 8 }}>(Sample size: {salaryBenchmark.sample_size})</span>
-          </div>
-        ) : (
-          <div style={{ color: '#888' }}>[Salary benchmarking for your target roles will appear here]</div>
-        )}
-      </section>
     </div>
   );
 };
