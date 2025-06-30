@@ -435,13 +435,13 @@ function ResourcesLibraryTab() {
       <h3 style={{ color: TEAL.dark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 220 }} />
-        <button onClick={handleSearch} disabled={loading || !searchTopic.trim()} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: TEAL.main, color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '1rem', minWidth: 90 }}>Search</button>
         <select name="difficulty" value={difficulty} onChange={handleDifficultyChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
           <option value="">All Levels</option>
           <option value="Beginner">Beginner</option>
           <option value="Intermediate">Intermediate</option>
           <option value="Advanced">Advanced</option>
         </select>
+        <button onClick={handleSearch} disabled={loading || !searchTopic.trim()} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: TEAL.main, color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '1rem', minWidth: 90 }}>Search</button>
       </div>
       {loading && <div style={{ color: TEAL.main, fontWeight: 'bold' }}>Searching resources...</div>}
       {error && <div style={{ color: 'red', fontWeight: 'bold' }}>{error}</div>}
