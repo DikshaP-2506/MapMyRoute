@@ -10,3 +10,4 @@ fpdf
 pydantic
 python-jose[cryptography]
 bcrypt
+json5

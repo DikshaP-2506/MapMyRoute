@@ -899,14 +899,78 @@ from fastapi import APIRouter
 api_router = APIRouter()
 
 def clean_json_string(json_str):
+    import re
     # Remove markdown code block markers
     json_str = re.sub(r"^```json|```$", "", json_str, flags=re.MULTILINE).strip()
     # Replace single quotes with double quotes
     json_str = json_str.replace("'", '"')
     # Remove trailing commas before } or ]
     json_str = re.sub(r",\s*([}\]])", r"\1", json_str)
-    # Remove newlines inside objects/arrays (optional, if needed)
+    # Insert missing commas between objects in arrays
+    json_str = re.sub(r"}(\s*){", r"},\1{", json_str)
+    # Remove newlines between objects in arrays
+    json_str = re.sub(r"]\s*\[", "], [", json_str)
+    # Remove any double commas
+    json_str = re.sub(r",\s*,", ",", json_str)
+    # Remove any comma before closing array
+    json_str = re.sub(r",\s*]", "]", json_str)
     return json_str
+
+def truncate_to_last_complete_json(json_str):
+    # Find the last closing curly or square bracket
+    last_curly = json_str.rfind('}')
+    last_square = json_str.rfind(']')
+    last = max(last_curly, last_square)
+    if last != -1:
+        return json_str[:last+1], (last != len(json_str)-1)
+    return json_str, False
+
+def remove_incomplete_objects(json_str):
+    import re
+    # Always remove the last object in each array, regardless of completeness
+    def fix_array(match):
+        arr = match.group(0)
+        # Find all objects in the array
+        objects = list(re.finditer(r'\{[^\}]*\}', arr))
+        if len(objects) > 1:
+            # Remove the last object
+            last_obj = objects[-1]
+            arr = arr[:last_obj.start()] + ']'  # Remove from last object to end, close array
+            # Remove any trailing comma
+            arr = re.sub(r',\s*]', ']', arr)
+        return arr
+    # Apply to all arrays in the JSON string
+    json_str = re.sub(r'\[[^\]]*\]', fix_array, json_str, flags=re.MULTILINE)
+    return json_str
+
+def extract_valid_objects(json_str):
+    import re
+    # For each array, extract all valid {...} objects and reconstruct the array
+    def fix_array(match):
+        arr = match.group(0)
+        objs = re.findall(r'\{[^\{\}]*\}', arr)
+        return '[' + ','.join(objs) + ']'
+    # Replace each array with only its valid objects
+    json_str = re.sub(r'\[[^\]]*\]', fix_array, json_str)
+    return json_str
+
+def fallback_parse_arrays(json_str):
+    import re
+    import json
+    arrays = {}
+    for key in ['videos', 'video_tutorials', 'articles', 'courses', 'online_courses', 'books', 'tools']:
+        match = re.search(rf'"{key}"\s*:\s*(\[[^\]]*\])', json_str)
+        if match:
+            arr_str = match.group(1)
+            try:
+                arr = json.loads(arr_str)
+                arrays[key] = arr
+            except Exception:
+                arrays[key] = []
+        else:
+            arrays[key] = []
+    arrays['error'] = "Partial results: failed to parse full response, but some arrays were recovered."
+    return arrays
 
 @api_router.post("/get-resources")
 async def get_resources_api(request: Request):
@@ -925,7 +989,7 @@ async def get_resources_api(request: Request):
                 'tools': [],
                 'error': 'Missing required field: topic'
             })
-        # Updated prompt for platform-agnostic, ranked resources
+        # Prompt for platform-agnostic, ranked resources (no learning style)
         prompt = f"""
 For the topic '{topic}', curate and rank the best resources from across the entire internet. Include:
 - Free videos
@@ -979,22 +1043,16 @@ Respond in JSON only.
                 else:
                     json_str = content
             json_str = clean_json_string(json_str)
+            json_str, was_truncated = truncate_to_last_complete_json(json_str)
+            json_str = extract_valid_objects(json_str)
             try:
                 resources = json.loads(json_str)
             except Exception as e:
                 print("Failed to parse JSON from Groq response:", e)
                 print("Raw response was:", content)
-                return {
-                    'videos': [],
-                    'video_tutorials': [],
-                    'articles': [],
-                    'courses': [],
-                    'online_courses': [],
-                    'books': [],
-                    'tools': [],
-                    'error': f"Failed to parse resources: {str(e)}",
-                    'raw_response': content
-                }
+                # Fallback: try to parse each array individually
+                resources = fallback_parse_arrays(json_str)
+                resources['raw_response'] = content
             # Ensure all keys are present and are lists (including legacy fields)
             default_resources = {
                 'videos': [],
@@ -1005,13 +1063,14 @@ Respond in JSON only.
                 'books': [],
                 'tools': []
             }
-            # If AI response has legacy fields, keep them; otherwise, add as empty
             if not isinstance(resources, dict):
                 resources = default_resources
             else:
                 for key in default_resources:
                     if key not in resources or not isinstance(resources[key], list):
                         resources[key] = []
+            if was_truncated:
+                resources['error'] = resources.get('error', '') + " Some results may be missing due to incomplete data from the AI."
             return resources
         except Exception as e:
             print("Resource fetch error (categorized):", e)
