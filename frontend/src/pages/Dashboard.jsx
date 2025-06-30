@@ -735,7 +735,7 @@ const Dashboard = () => {
               style={{
                 padding: '0.5rem 1rem',
                 borderRadius: 8,
-                maxWidth: '90vw',
+                maxWidth: '100vw',
                 fontSize: '1rem',
               }}
             >
@@ -752,7 +752,7 @@ const Dashboard = () => {
         style={{
           ...tabNavStyle,
           flexWrap: 'wrap',
-          maxWidth: '98vw',
+          maxWidth: '100vw',
         }}
       >
         {tabs.map((tab, idx) => (
@@ -774,9 +774,9 @@ const Dashboard = () => {
       </nav>
       <section
         style={{
-          maxWidth: '900px',
-          width: '96vw',
-          margin: '2rem auto',
+          maxWidth: '100%',
+          width: '100vw',
+          //margin: '2rem auto',
           background: '#fff',
           borderRadius: '20px',
           boxShadow: '0 8px 32px rgba(79,140,255,0.10)',

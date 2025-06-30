@@ -74,12 +74,6 @@ const LandingPage = () => (
         Sample: Python for Beginners (Demo Coming Soon)
       </div>
     </section>
-
-    {/* Footer */}
-    <footer className="text-center mt-5 py-4 opacity-75" style={{ color: TEAL.dark, background: TEAL.lighter, width: '100%', boxSizing: 'border-box' }}>
-      <p>About | Contact | Terms | Privacy | Socials</p>
-      <p className="small mt-2">© {new Date().getFullYear()} MapMyRoute (SkillPilot)</p>
-    </footer>
   </div>
 );
 
