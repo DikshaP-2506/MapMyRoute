@@ -13,6 +13,7 @@ import MicroSkillChallenge from "./pages/MicroSkillChallenge";
 import CareerInsights from "./pages/CareerInsights";
 import LandbotWidgetLoader from "./LandbotWidgetLoader";
 import myBg from "./assets/background_image.jpg";
+import logo from "./assets/logo.png";
 
 
 // Add TEAL color palette for use in Header
@@ -145,7 +146,10 @@ function Header({ user, getInitials, hideNavLinks }) {
   return (
     <header className="navbar navbar-expand-lg shadow mb-4" style={{ background: TEAL.main }}>
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand fs-3 fw-bold" style={{ color: '#fff' }}>MapMyRoute</Link>
+        <Link to="/" className="navbar-brand fs-3 fw-bold d-flex align-items-center" style={{ color: '#fff' }}>
+          <img src={logo} alt="MapMyRoute Logo" style={{ height: 48, width: 48, objectFit: 'contain', marginRight: 12 }} />
+          MapMyRoute
+        </Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
