@@ -76,7 +76,7 @@ function App() {
     return "?";
   };
 
-  // Use location to hide nav links on landing page
+  // Use window.location.pathname to hide nav links on landing page
   const location = window.location.pathname;
   const hideNavLinks = location === "/";
   const isLanding = window.location.pathname === "/";
@@ -158,12 +158,10 @@ function Header({ user, getInitials, hideNavLinks }) {
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
-                {user && (
-                  <Link to="/settings" className="nav-link text-white">Settings</Link>
-                )}
+                <Link to="/" className="nav-link text-white">Home</Link>
               </>
             )}
-            {user && user.email ? (
+            {user && user.email && (
               <span
                 onClick={() => navigate("/settings")}
                 title="Settings"
@@ -185,7 +183,8 @@ function Header({ user, getInitials, hideNavLinks }) {
               >
                 {getInitials(user.displayName, user.email)}
               </span>
-            ) : (
+            )}
+            {!user && (
               <Link to="/login" className="nav-link text-white">Login</Link>
             )}
           </nav>
