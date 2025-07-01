@@ -47,7 +47,9 @@ function App() {
             if (data && data.email) {
               setUser({
                 displayName: data.name || "",
-                email: data.email
+                email: data.email,
+                id: data.id,
+                uid: data.uid
               });
             } else {
               setUser(null);

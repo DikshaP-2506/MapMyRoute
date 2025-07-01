@@ -26,6 +26,7 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 import re
 import urllib.parse
+from sqlalchemy.dialects.postgresql import ARRAY
 
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mapmyroute")
@@ -90,6 +91,13 @@ class UserQuizAttempt(Base):
     answers = Column(JSON)
     score = Column(Integer)
     attempted_at = Column(TIMESTAMP)
+
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    current_skills = Column(ARRAY(String), default=[])
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -492,6 +500,21 @@ def patch_planner_task(id: int, body: PlannerTaskUpdate, user: UserDB = Depends(
         setattr(task, "rescheduled_to", body.rescheduled_to)
     db.commit()
     db.refresh(task)
+
+    # Automatically update user progress if task is marked complete
+    if body.status == "complete":
+        skill_path = db.query(SkillPathDB).filter_by(id=task.skill_path_id).first()
+        if skill_path:
+            skill_tag = skill_path.title
+            progress = db.query(UserProgress).filter_by(user_id=user.id).first()
+            if progress:
+                if skill_tag not in progress.current_skills:
+                    progress.current_skills.append(skill_tag)
+                    progress.updated_at = datetime.utcnow()
+            else:
+                progress = UserProgress(user_id=user.id, current_skills=[skill_tag])
+                db.add(progress)
+            db.commit()
     return {
         "id": task.id,
         "skill_path_id": task.skill_path_id,
@@ -541,7 +564,6 @@ def shift_pending_tasks(
         latest_due = latest_due + timedelta(days=1)
         t.due_date = latest_due
         db.add(t)
-        shifted += 1
     db.commit()
     return {"shifted": shifted, "message": f"Shifted {shifted} pending tasks to future dates."}
 
@@ -1160,16 +1182,82 @@ def get_user_progress(user_id: int, db: Session = Depends(get_db)):
 def get_personalized_quiz(user_id: int, db: Session = Depends(get_db)):
     # Fetch user progress
     progress = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
-    # Example: get relevant skill tags from progress
     skill_tags = progress.current_skills if progress else []
-    # Fetch questions matching skill tags
-    questions = db.query(Question).filter(Question.skill_tag.in_(skill_tags)).all()
-    # Pick a quiz or create one on the fly
-    quiz = {"title": "Weekly Challenge", "questions": [q for q in questions]}
+    all_questions = []
+    for skill_tag in skill_tags:
+        # Fetch or create a quiz for this skill
+        quiz_obj = db.query(Quiz).filter_by(title=skill_tag).first()
+        if not quiz_obj:
+            quiz_obj = Quiz(title=skill_tag, description=f"Auto-generated quiz for {skill_tag}")
+            db.add(quiz_obj)
+            db.commit()
+            db.refresh(quiz_obj)
+        quiz_id = quiz_obj.id
+        # Always initialize questions as a list
+        questions = db.query(Question).filter(Question.skill_tag == skill_tag).all()
+        if not questions:
+            # Fetch completed tasks for this skill
+            skill_path = db.query(SkillPathDB).filter_by(title=skill_tag, user_id=user_id).first()
+            completed_tasks = []
+            if skill_path:
+                completed_tasks = db.query(PlannerDB).filter_by(skill_path_id=skill_path.id, status="complete").all()
+            completed_descriptions = [t.description for t in completed_tasks]
+            # Use Groq to generate questions based on completed tasks
+            if completed_descriptions:
+                prompt = (
+                    f"Generate 3 quiz questions (with 4 options each, and the correct answer) for the skill: {skill_tag}. "
+                    f"Base the questions on these completed tasks: {completed_descriptions}. "
+                    "Respond in JSON as a list: [{question_text, options, correct_option}]."
+                )
+                messages = [
+                    {"role": "system", "content": "You are a quiz generator."},
+                    {"role": "user", "content": prompt}
+                ]
+                try:
+                    content = call_groq(messages)
+                    generated = parse_json_from_response(content)
+                    # Save generated questions to DB
+                    for q in generated:
+                        question = Question(
+                            quiz_id=quiz_id,
+                            question_text=q["question_text"],
+                            options=q["options"],
+                            correct_option=q["correct_option"],
+                            skill_tag=skill_tag
+                        )
+                        db.add(question)
+                        db.commit()
+                        questions.append(question)
+                except Exception as e:
+                    print(f"Groq question generation failed: {e}")
+        all_questions.extend(questions)
+    quiz_id_to_return = all_questions[0].quiz_id if all_questions else None
+    quiz = {
+        "title": "Weekly Challenge",
+        "quiz_id": quiz_id_to_return,
+        "questions": [
+            {
+                "id": q.id,
+                "question_text": q.question_text,
+                "options": q.options,
+                "correct_option": q.correct_option,
+                "skill_tag": q.skill_tag
+            }
+            for q in all_questions
+        ]
+    }
     return quiz
 
+class QuizAttemptRequest(BaseModel):
+    user_id: int
+    quiz_id: int
+    answers: dict
+
 @app.post("/quiz/attempt")
-def submit_quiz_attempt(user_id: int, quiz_id: int, answers: dict, db: Session = Depends(get_db)):
+def submit_quiz_attempt(body: QuizAttemptRequest, db: Session = Depends(get_db)):
+    user_id = body.user_id
+    quiz_id = body.quiz_id
+    answers = body.answers
     # Fetch correct answers
     questions = db.query(Question).filter(Question.quiz_id == quiz_id).all()
     score = sum(1 for q in questions if answers.get(str(q.id)) == q.correct_option)
@@ -1438,4 +1526,4 @@ def ai_recalculate_roadmap(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/user/me")
 def get_me(user: UserDB = Depends(get_current_user)):
-    return {"email": user.email, "name": user.name}
+    return {"id": user.id, "uid": user.uid, "email": user.email, "name": user.name}

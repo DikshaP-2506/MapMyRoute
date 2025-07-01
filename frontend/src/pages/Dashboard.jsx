@@ -1240,13 +1240,12 @@ const Dashboard = () => {
             Career Insights
           </button>
         </Link>
-        <Link to={isWeekend() ? "/micro-skill-challenge" : "#"} style={{ textDecoration: 'none' }}>
+        <Link to="/micro-skill-challenge" style={{ textDecoration: 'none' }}>
           <button
             className="btn btn-primary"
-            disabled={!isWeekend()}
-            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#14b8a6', border: 'none', borderRadius: '8px', cursor: isWeekend() ? 'pointer' : 'not-allowed', opacity: isWeekend() ? 1 : 0.6 }}
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#14b8a6', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: 1 }}
           >
-            {isWeekend() ? 'Take Your Weekly Quiz & Game Test!' : 'Quiz & Game Test available on Weekends'}
+            Take Your Weekly Quiz & Game Test!
           </button>
         </Link>
         <div style={{ fontSize: '0.95rem', color: '#555', marginTop: '0.5rem' }}>

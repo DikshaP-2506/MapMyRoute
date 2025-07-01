@@ -58,3 +58,11 @@ CREATE TABLE IF NOT EXISTS user_quiz_attempts (
     score INTEGER,
     attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- user_progress table
+CREATE TABLE IF NOT EXISTS user_progress (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    current_skills TEXT[] DEFAULT '{}', -- Array of skill tags/strings
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
