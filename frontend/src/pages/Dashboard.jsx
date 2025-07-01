@@ -1199,10 +1199,14 @@ const Dashboard = () => {
       </nav>
       <section
         style={{
+          maxWidth: '100%',
+          width: '100vw',
           background: 'rgba(255,255,255,0.85)',
-          borderRadius: 16,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
+          padding: 'min(2.5rem, 5vw)',
+          minHeight: '350px',
+          boxSizing: 'border-box',
         }}
       >
         {tabContent[activeTab]}
