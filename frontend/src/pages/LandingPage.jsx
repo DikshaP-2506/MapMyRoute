@@ -119,6 +119,15 @@ const LandingPage = () => (
       </div>
     </section>
 
+    {/* Dashboard Button Section */}
+    <div className="w-100 d-flex justify-content-center my-4">
+      <Link to="/dashboard">
+        <button className="btn btn-primary btn-lg px-5 py-3 fw-bold" style={{ fontSize: '1.4rem', borderRadius: 14, background: TEAL.main, border: 'none', boxShadow: `0 2px 8px ${TEAL.shadow}` }}>
+          Go to Dashboard
+        </button>
+      </Link>
+    </div>
+
     {/* Main Content */}
     <div className="flex-grow-1">
       {/* Features Overview */}
