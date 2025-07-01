@@ -148,7 +148,16 @@ function Header({ user, getInitials, hideNavLinks }) {
       <div className="container-fluid">
         <Link to="/" className="navbar-brand fs-3 fw-bold d-flex align-items-center" style={{ color: '#fff' }}>
           <img src={logo} alt="MapMyRoute Logo" style={{ height: 48, width: 48, objectFit: 'contain', marginRight: 12 }} />
-          MapMyRoute
+          <span style={{
+            fontFamily: 'Libre Baskerville, serif',
+            fontWeight: 800,
+            fontSize: '2.5rem',
+            letterSpacing: '1px',
+            lineHeight: 1,
+            color: '#fff',
+          }}>
+            MapMyRoute
+          </span>
         </Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
