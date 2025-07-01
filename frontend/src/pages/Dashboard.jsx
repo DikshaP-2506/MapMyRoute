@@ -5,14 +5,17 @@ import axios from "axios";
 
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Teal color palette
-const TEAL = {
-  main: '#14b8a6', // teal-500
-  light: '#99f6e4', // teal-200
-  lighter: '#f0fdfa', // teal-50
-  dark: '#0f766e', // teal-700
-  accent: '#2dd4bf', // teal-400
-  shadow: '#14b8a622',
+// Update COLORS palette to use darker, more muted shades
+const COLORS = {
+  teal: '#11706d', // darker teal
+  tealDark: '#0a4745', // even darker teal
+  tealLight: '#3bb8a6', // muted teal light
+  tealLighter: '#e0f2f1', // muted teal lighter
+  yellow: '#ffe9a7', // deeper yellow
+  coral: '#e76a5a', // muted coral
+  purple: '#7c5fd4', // muted purple
+  gray: '#e5e7eb', // darker light gray
+  shadow: '#11706d22',
 };
 
 const tabNavStyle = {
@@ -23,14 +26,14 @@ const tabNavStyle = {
 };
 
 const tabBtnStyle = (active) => ({
-  background: active ? TEAL.main : TEAL.light,
-  color: active ? '#fff' : TEAL.main,
+  background: active ? COLORS.teal : COLORS.tealLight,
+  color: active ? '#fff' : COLORS.teal,
   border: 'none',
   borderRadius: 8,
   padding: '0.75rem 1.5rem',
   fontWeight: 'bold',
   cursor: 'pointer',
-  boxShadow: active ? `0 2px 8px ${TEAL.shadow}` : 'none',
+  boxShadow: active ? `0 2px 8px ${COLORS.shadow}` : 'none',
   transition: 'all 0.2s',
 });
 
@@ -53,7 +56,7 @@ function Toast({ message, onClose }) {
       position: 'fixed',
       top: 20,
       right: 20,
-      background: '#14b8a6',
+      background: COLORS.teal,
       color: '#fff',
       padding: '12px 24px',
       borderRadius: 8,
@@ -142,10 +145,10 @@ function MySkillPathsTab() {
         {paths.map(path => (
           <li key={path.id} className="mb-4 p-3"
             style={{
-              background: TEAL.lighter,
+              background: '#fff',
               borderRadius: 12,
-              boxShadow: `0 1px 6px ${TEAL.shadow}`,
-              borderBottom: `2px solid ${TEAL.light}`,
+              boxShadow: `0 1px 6px ${COLORS.shadow}`,
+              borderBottom: `2px solid ${COLORS.tealLight}`,
               display: 'flex',
               flexDirection: 'column',
               gap: '1rem',
@@ -157,7 +160,7 @@ function MySkillPathsTab() {
               style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
             >
               <div style={{ flex: 2 }}>
-                <div className="fw-bold fs-5" style={{ color: TEAL.dark, fontSize: 'clamp(1.1rem, 2vw, 1.3rem)' }}>{path.title}</div>
+                <div className="fw-bold fs-5" style={{ color: COLORS.tealDark, fontSize: 'clamp(1.1rem, 2vw, 1.3rem)' }}>{path.title}</div>
                 <div className="text-secondary mb-1" style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)' }}>{path.description}</div>
                 <div className="small text-muted mb-1">
                   Started on: {path.started_on ? new Date(path.started_on).toLocaleDateString() : 'N/A'}
@@ -167,11 +170,11 @@ function MySkillPathsTab() {
                 </div>
               </div>
               <div className="text-center" style={{ minWidth: 120, flex: 1 }}>
-                <div className="small mb-1" style={{ color: TEAL.dark }}>Progress</div>
-                <div className="progress" style={{ height: 18, width: '100%', maxWidth: 120, margin: '0 auto', background: TEAL.light }}>
-                  <div className="progress-bar" role="progressbar" style={{ width: `${Math.round(path.progress)}%`, background: TEAL.main }} aria-valuenow={Math.round(path.progress)} aria-valuemin={0} aria-valuemax={100}></div>
+                <div className="small mb-1" style={{ color: COLORS.tealDark }}>Progress</div>
+                <div className="progress" style={{ height: 18, width: '100%', maxWidth: 120, margin: '0 auto', background: COLORS.tealLight }}>
+                  <div className="progress-bar" role="progressbar" style={{ width: `${Math.round(path.progress)}%`, background: COLORS.teal }} aria-valuenow={Math.round(path.progress)} aria-valuemin={0} aria-valuemax={100}></div>
                 </div>
-                <div className="small mt-1" style={{ color: TEAL.main }}>
+                <div className="small mt-1" style={{ color: COLORS.teal }}>
                   {Math.round(path.progress)}%
                 </div>
               </div>
@@ -185,14 +188,14 @@ function MySkillPathsTab() {
                     }
                   }}
                   className="btn"
-                  style={{ background: TEAL.main, color: '#fff', border: 'none', minWidth: 90 }}
+                  style={{ background: COLORS.teal, color: '#fff', border: 'none', minWidth: 90 }}
                 >
                   {expandedPathId === path.id ? 'Hide Roadmap' : 'View Roadmap'}
                 </button>
                 <button
                   onClick={() => handleDelete(path.id)}
                   className="btn"
-                  style={{ background: TEAL.dark, color: '#fff', border: 'none', minWidth: 90 }}
+                  style={{ background: COLORS.tealDark, color: '#fff', border: 'none', minWidth: 90 }}
                 >
                   Delete
                 </button>
@@ -200,11 +203,11 @@ function MySkillPathsTab() {
             </div>
             {/* Roadmap details */}
             {expandedPathId === path.id && roadmapDetails[path.id] && roadmapDetails[path.id].data && Array.isArray(roadmapDetails[path.id].data.weeks) && roadmapDetails[path.id].data.weeks.length > 0 && (
-              <div style={{ marginTop: 16, background: '#fff', borderRadius: 10, boxShadow: `0 1px 6px ${TEAL.shadow}`, padding: 16 }}>
-                <h5 style={{ color: TEAL.accent, marginBottom: 8 }}>Full Roadmap</h5>
+              <div style={{ marginTop: 16, background: '#fff', borderRadius: 10, boxShadow: `0 1px 6px ${COLORS.shadow}`, padding: 16 }}>
+                <h5 style={{ color: COLORS.teal, marginBottom: 8 }}>Full Roadmap</h5>
                 {roadmapDetails[path.id].data.weeks.map((week, idx) => (
                   <div key={idx} style={{ marginBottom: 12 }}>
-                    <strong style={{ color: TEAL.main }}>Week {week.week}</strong>
+                    <strong style={{ color: COLORS.teal }}>Week {week.week}</strong>
                     <ul style={{ paddingLeft: 18 }}>
                       {Array.isArray(week.goals) && week.goals.map((goal, i) => (
                         <li key={i}>
@@ -310,57 +313,57 @@ function RoadmapGeneratorTab() {
 
   return (
     <div style={{ maxWidth: 500, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
-      <h3 style={{ color: TEAL.dark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>AI Roadmap Generator</h3>
+      <h3 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>AI Roadmap Generator</h3>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400, width: '100%', margin: '0 auto' }}>
-        <input name="topic" placeholder="Skill Topic (e.g. Frontend Development)" value={form.topic} onChange={handleChange} required style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
-        <select name="level" value={form.level} onChange={handleChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}>
+        <input name="topic" placeholder="Skill Topic (e.g. Frontend Development)" value={form.topic} onChange={handleChange} required style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
+        <select name="level" value={form.level} onChange={handleChange} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}>
           <option>Beginner</option>
           <option>Intermediate</option>
           <option>Advanced</option>
         </select>
-        <input name="time" placeholder="Time availability (hours/week)" value={form.time} onChange={handleChange} required style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
+        <input name="time" placeholder="Time availability (hours/week)" value={form.time} onChange={handleChange} required style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
         <input
           name="duration"
           placeholder="Duration (weeks)"
           value={form.duration}
           onChange={handleChange}
           required
-          style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
+          style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
         />
         {/* Outcome/Goal dropdown */}
         <select
           name="goal"
           value={form.goal}
           onChange={handleChange}
-          style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
+          style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}
         >
           <option value="">Select Outcome (optional)</option>
           <option value="Build a portfolio">Build a portfolio</option>
           <option value="Get ready for an interview">Get ready for an interview</option>
           <option value="Freelance this skill">Freelance this skill</option>
         </select>
-        <button type="submit" style={{ background: TEAL.main, color: '#fff', border: 'none', borderRadius: 8, padding: '0.75rem', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }} disabled={loading}>
+        <button type="submit" style={{ background: COLORS.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '0.75rem', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }} disabled={loading}>
           {loading ? 'Generating...' : 'Generate Roadmap'}
         </button>
       </form>
-      {error && <div style={{ color: TEAL.dark, marginTop: '1rem' }}>{error}</div>}
+      {error && <div style={{ color: COLORS.tealDark, marginTop: '1rem' }}>{error}</div>}
       {result && (
         <div style={{ marginTop: '2rem' }}>
-          <h4 style={{ color: TEAL.main, fontSize: 'clamp(1.1rem, 2vw, 1.4rem)' }}>Generated Roadmap</h4>
+          <h4 style={{ color: COLORS.teal, fontSize: 'clamp(1.1rem, 2vw, 1.4rem)' }}>Generated Roadmap</h4>
           <div style={{ fontWeight: 600, fontSize: '1.1em' }}><strong>{result.title}</strong></div>
-          <div style={{ color: TEAL.dark, marginBottom: '1rem', fontSize: '1em' }}>{result.description}</div>
+          <div style={{ color: COLORS.tealDark, marginBottom: '1rem', fontSize: '1em' }}>{result.description}</div>
           {result.weeks && result.weeks.map(w => (
-            <div key={w.week} style={{ marginBottom: '1rem', background: TEAL.lighter, borderRadius: 8, padding: 8 }}>
-              <strong style={{ color: TEAL.main }}>Week {w.week}</strong>
+            <div key={w.week} style={{ marginBottom: '1rem', background: COLORS.tealLighter, borderRadius: 8, padding: 8 }}>
+              <strong style={{ color: COLORS.teal }}>Week {w.week}</strong>
               <ul style={{ paddingLeft: 18 }}>
                 {w.goals.map((g, i) => <li key={i}>{g}</li>)}
               </ul>
             </div>
           ))}
-          <button onClick={handleSave} style={{ background: TEAL.accent, color: TEAL.dark, border: 'none', borderRadius: 8, padding: '0.75rem 2rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem', fontSize: '1rem' }}>
+          <button onClick={handleSave} style={{ background: COLORS.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '0.75rem 2rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem', fontSize: '1rem' }}>
             Save to My Skill Paths
           </button>
-          {saveMsg && <div style={{ color: saveMsg.startsWith('Saved') ? TEAL.main : 'red', marginTop: '1rem' }}>{saveMsg}</div>}
+          {saveMsg && <div style={{ color: saveMsg.startsWith('Saved') ? COLORS.teal : 'red', marginTop: '1rem' }}>{saveMsg}</div>}
         </div>
       )}
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
@@ -371,7 +374,7 @@ function RoadmapGeneratorTab() {
 function Section({ title, items, renderItem }) {
   return (
     <div style={{ marginBottom: '2rem' }}>
-      <h3 style={{ color: TEAL.main, borderBottom: `2px solid ${TEAL.main}`, paddingBottom: '0.5rem' }}>{title}</h3>
+      <h3 style={{ color: COLORS.teal, borderBottom: `2px solid ${COLORS.teal}`, paddingBottom: '0.5rem' }}>{title}</h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
         {items && items.length > 0 ? items.map(renderItem) : <div style={{ color: '#888' }}>No {title.toLowerCase()} found.</div>}
       </div>
@@ -420,7 +423,7 @@ function ResourcesLibraryTab() {
   // Helper to render a section for each resource type
   const renderSection = (title, items, renderItem) => (
     <div style={{ marginBottom: '2rem' }}>
-      <h3 style={{ color: TEAL.main, borderBottom: `2px solid ${TEAL.main}`, paddingBottom: '0.5rem' }}>{title}</h3>
+      <h3 style={{ color: COLORS.teal, borderBottom: `2px solid ${COLORS.teal}`, paddingBottom: '0.5rem' }}>{title}</h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
         {items && items.length > 0 ? items.map(renderItem) : <div style={{ color: '#888' }}>No {title.toLowerCase()} found.</div>}
       </div>
@@ -433,18 +436,18 @@ function ResourcesLibraryTab() {
 
   return (
     <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
-      <h3 style={{ color: TEAL.dark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
+      <h3 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 220 }} />
-        <select name="difficulty" value={difficulty} onChange={handleDifficultyChange} style={{ border: `1.5px solid ${TEAL.main}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
+        <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 220 }} />
+        <select name="difficulty" value={difficulty} onChange={handleDifficultyChange} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
           <option value="">All Levels</option>
           <option value="Beginner">Beginner</option>
           <option value="Intermediate">Intermediate</option>
           <option value="Advanced">Advanced</option>
         </select>
-        <button onClick={handleSearch} disabled={loading || !searchTopic.trim()} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: TEAL.main, color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '1rem', minWidth: 90 }}>Search</button>
+        <button onClick={handleSearch} disabled={loading || !searchTopic.trim()} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: COLORS.teal, color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '1rem', minWidth: 90 }}>Search</button>
       </div>
-      {loading && <div style={{ color: TEAL.main, fontWeight: 'bold' }}>Searching resources...</div>}
+      {loading && <div style={{ color: COLORS.teal, fontWeight: 'bold' }}>Searching resources...</div>}
       {error && <div style={{ color: 'red', fontWeight: 'bold' }}>{error}</div>}
       {resources && (
         <>
@@ -457,7 +460,7 @@ function ResourcesLibraryTab() {
                 <p><strong>Platform:</strong> {v.platform || v.source}</p>
                 <p><strong>Type:</strong> {v.is_free ? 'Free' : 'Paid'}</p>
                 {v.userRating && <p><strong>User Rating:</strong> {v.userRating}</p>}
-                <a href={v.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Watch</a>
+                <a href={v.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.teal, fontWeight: 600 }}>Watch</a>
               </Card>
             )
           )}
@@ -470,7 +473,7 @@ function ResourcesLibraryTab() {
                 <p><strong>Source:</strong> {a.source}</p>
                 {a.reading_time && <p><strong>Reading Time:</strong> {a.reading_time}</p>}
                 {a.userRating && <p><strong>User Rating:</strong> {a.userRating}</p>}
-                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Read</a>
+                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.teal, fontWeight: 600 }}>Read</a>
               </Card>
             )
           )}
@@ -483,7 +486,7 @@ function ResourcesLibraryTab() {
                 <p><strong>Platform:</strong> {c.platform}</p>
                 <p><strong>Type:</strong> {c.is_free ? 'Free' : 'Paid'}</p>
                 {c.userRating && <p><strong>User Rating:</strong> {c.userRating}</p>}
-                <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Course</a>
+                <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.teal, fontWeight: 600 }}>View Course</a>
               </Card>
             )
           )}
@@ -495,7 +498,7 @@ function ResourcesLibraryTab() {
                 <h4>{b.title}</h4>
                 <p><strong>Author:</strong> {b.author}</p>
                 {b.userRating && <p><strong>User Rating:</strong> {b.userRating}</p>}
-                <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>View Book</a>
+                <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.teal, fontWeight: 600 }}>View Book</a>
               </Card>
             )
           )}
@@ -509,7 +512,7 @@ function ResourcesLibraryTab() {
                 {t.type && <p><strong>Type:</strong> {t.type}</p>}
                 {(t.platform || t.source) && <p><strong>Platform:</strong> {t.platform || t.source}</p>}
                 {t.userRating && <p><strong>User Rating:</strong> {t.userRating}</p>}
-                <a href={t.url} target="_blank" rel="noopener noreferrer" style={{ color: TEAL.main, fontWeight: 600 }}>Visit Tool</a>
+                <a href={t.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.teal, fontWeight: 600 }}>Visit Tool</a>
               </Card>
             )
           )}
@@ -641,7 +644,7 @@ function WeeklyPlannerTab({ skillPathId }) {
     if (view !== 'month') return null;
     const dateStr = date.toISOString().slice(0, 10);
     if (tasksByDate[dateStr]) {
-      return <span style={{ display: 'block', marginTop: 2, color: TEAL.main, fontWeight: 600, fontSize: 12 }}>●</span>;
+      return <span style={{ display: 'block', marginTop: 2, color: COLORS.teal, fontWeight: 600, fontSize: 12 }}>●</span>;
     }
     return null;
   };
@@ -672,28 +675,28 @@ function WeeklyPlannerTab({ skillPathId }) {
         top: '20%',
         transform: 'translate(-50%, 0)',
         background: '#fff',
-        border: `1px solid ${TEAL.main}`,
+        border: `1px solid ${COLORS.teal}`,
         borderRadius: 8,
-        boxShadow: `0 2px 12px ${TEAL.shadow}`,
+        boxShadow: `0 2px 12px ${COLORS.shadow}`,
         padding: 16,
         zIndex: 1000,
         minWidth: 220
       }}>
-        <div style={{ fontWeight: 600, color: TEAL.main, marginBottom: 8 }}>Tasks for {dateStr}</div>
+        <div style={{ fontWeight: 600, color: COLORS.teal, marginBottom: 8 }}>Tasks for {dateStr}</div>
         <ul style={{ paddingLeft: 16, margin: 0 }}>
           {dayTasks.map(task => (
             <li key={task.id} style={{ marginBottom: 6 }}>
               <div style={{ fontWeight: 500 }}>{task.description}</div>
-              <div style={{ fontSize: 13, color: TEAL.dark }}>Status: <span style={{ color: task.status === 'complete' ? TEAL.main : (task.due_date < todayStr ? 'red' : TEAL.dark) }}>{task.status === 'complete' ? 'Complete' : (task.due_date < todayStr ? 'Overdue' : task.status)}</span></div>
+              <div style={{ fontSize: 13, color: COLORS.tealDark }}>Status: <span style={{ color: task.status === 'complete' ? COLORS.teal : (task.due_date < todayStr ? 'red' : COLORS.tealDark) }}>{task.status === 'complete' ? 'Complete' : (task.due_date < todayStr ? 'Overdue' : task.status)}</span></div>
               {task.status !== 'complete' ? (
-                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.main, color: '#fff', border: 'none', marginTop: 4 }}>Mark Complete</button>
+                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: COLORS.teal, color: '#fff', border: 'none', marginTop: 4 }}>Mark Complete</button>
               ) : (
-                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: TEAL.light, color: TEAL.dark, border: 'none', marginTop: 4 }}>Mark Pending</button>
+                <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: COLORS.tealLight, color: COLORS.tealDark, border: 'none', marginTop: 4 }}>Mark Pending</button>
               )}
             </li>
           ))}
         </ul>
-        <button onClick={() => setSelectedDate(null)} style={{ marginTop: 10, background: TEAL.light, color: TEAL.dark, border: 'none', borderRadius: 6, padding: '4px 12px', fontWeight: 'bold', cursor: 'pointer' }}>Close</button>
+        <button onClick={() => setSelectedDate(null)} style={{ marginTop: 10, background: COLORS.tealLight, color: COLORS.tealDark, border: 'none', borderRadius: 6, padding: '4px 12px', fontWeight: 'bold', cursor: 'pointer' }}>Close</button>
       </div>
     );
   };
@@ -791,7 +794,7 @@ function WeeklyPlannerTab({ skillPathId }) {
               <button
                 onClick={() => setRegenMode("deeper")}
                 disabled={regenLoading}
-                style={{ background: TEAL.accent, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                style={{ background: COLORS.teal, color: '#fff', border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
               >
                 Want to go deeper into the tasks?
               </button>
@@ -799,7 +802,7 @@ function WeeklyPlannerTab({ skillPathId }) {
                 <select
                   value={regenWeek}
                   onChange={e => setRegenWeek(e.target.value)}
-                  style={{ marginTop: 4, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
+                  style={{ marginTop: 4, border: `1.5px solid ${COLORS.teal}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
                   disabled={regenLoading}
                 >
                   <option value="">Select week</option>
@@ -812,7 +815,7 @@ function WeeklyPlannerTab({ skillPathId }) {
                 <button
                   onClick={() => regenerateWeek("deeper", Number(regenWeek))}
                   disabled={regenLoading}
-                  style={{ marginTop: 4, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                  style={{ marginTop: 4, background: COLORS.teal, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
                 >
                   Apply
                 </button>
@@ -822,7 +825,7 @@ function WeeklyPlannerTab({ skillPathId }) {
               <button
                 onClick={() => setRegenMode("easier")}
                 disabled={regenLoading}
-                style={{ background: TEAL.light, color: TEAL.dark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                style={{ background: COLORS.tealLight, color: COLORS.tealDark, border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
               >
                 Struggling? Easier path
               </button>
@@ -830,7 +833,7 @@ function WeeklyPlannerTab({ skillPathId }) {
                 <select
                   value={regenWeek}
                   onChange={e => setRegenWeek(e.target.value)}
-                  style={{ marginTop: 4, border: `1.5px solid ${TEAL.main}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
+                  style={{ marginTop: 4, border: `1.5px solid ${COLORS.teal}`, borderRadius: 6, padding: "4px 8px", width: '100%' }}
                   disabled={regenLoading}
                 >
                   <option value="">Select week</option>
@@ -843,7 +846,7 @@ function WeeklyPlannerTab({ skillPathId }) {
                 <button
                   onClick={() => regenerateWeek("easier", Number(regenWeek))}
                   disabled={regenLoading}
-                  style={{ marginTop: 4, background: TEAL.main, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
+                  style={{ marginTop: 4, background: COLORS.teal, color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontWeight: "bold", cursor: "pointer", width: '100%' }}
                 >
                   Apply
                 </button>
@@ -872,9 +875,9 @@ function WeeklyPlannerTab({ skillPathId }) {
         )}
         <style>{`
           .react-calendar__tile.calendar-current-week {
-            background: ${TEAL.light} !important;
+            background: ${COLORS.tealLight} !important;
             border-radius: 8px;
-            box-shadow: 0 2px 8px ${TEAL.shadow};
+            box-shadow: 0 2px 8px ${COLORS.shadow};
           }
           @media (max-width: 700px) {
             .react-calendar {
@@ -952,7 +955,6 @@ function ProgressAnalyticsTab({ skillPathId }) {
     { name: 'Pending', value: stats.pending },
     { name: 'Deferred', value: stats.deferred }
   ];
-  const COLORS = [TEAL.main, TEAL.accent, '#ff4f4f'];
   const barData = [
     { name: 'Time Spent (hrs)', value: stats.time_spent_hours }
   ];
@@ -962,7 +964,7 @@ function ProgressAnalyticsTab({ skillPathId }) {
       <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center', marginBottom: 16 }}>Progress Analytics</h3>
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         <div style={{ minWidth: 260, flex: 1 }}>
-          <h4 style={{ color: TEAL.dark, fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)' }}>Task Status</h4>
+          <h4 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)' }}>Task Status</h4>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
@@ -976,20 +978,20 @@ function ProgressAnalyticsTab({ skillPathId }) {
           </ResponsiveContainer>
         </div>
         <div style={{ minWidth: 260, flex: 1 }}>
-          <h4 style={{ color: TEAL.dark, fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)' }}>Time Spent</h4>
+          <h4 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)' }}>Time Spent</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill={TEAL.main} />
+              <Bar dataKey="value" fill={COLORS.teal} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
       <div style={{ marginTop: 24 }}>
-        <h4 style={{ color: TEAL.dark, fontSize: 'clamp(1.05rem, 1.5vw, 1.2rem)' }}>AI Suggestions for Improvement</h4>
-        <div style={{ background: TEAL.lighter, padding: 16, borderRadius: 8, fontSize: '1em' }}>
+        <h4 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.05rem, 1.5vw, 1.2rem)' }}>AI Suggestions for Improvement</h4>
+        <div style={{ background: COLORS.tealLighter, padding: 16, borderRadius: 8, fontSize: '1em' }}>
           {renderSuggestions(suggestions)}
         </div>
       </div>
@@ -1090,7 +1092,7 @@ const Dashboard = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: `linear-gradient(135deg, ${TEAL.lighter} 0%, ${TEAL.light} 100%)`,
+        background: '#fff',
         fontFamily: 'sans-serif',
         width: '100vw',
         boxSizing: 'border-box',
@@ -1100,7 +1102,7 @@ const Dashboard = () => {
       <h2
         style={{
           textAlign: 'center',
-          color: TEAL.main,
+          color: COLORS.teal,
           marginTop: '2rem',
           fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
         }}
@@ -1120,6 +1122,9 @@ const Dashboard = () => {
                 borderRadius: 8,
                 maxWidth: '100vw',
                 fontSize: '1rem',
+                background: COLORS.yellow,
+                border: `1.5px solid ${COLORS.teal}`,
+                color: COLORS.tealDark,
               }}
             >
               {paths.map(p => (
@@ -1148,6 +1153,10 @@ const Dashboard = () => {
               width: 'auto',
               flex: '1 1 120px',
               maxWidth: 200,
+              background: activeTab === idx ? COLORS.coral : COLORS.yellow,
+              color: activeTab === idx ? '#fff' : COLORS.tealDark,
+              border: 'none',
+              boxShadow: activeTab === idx ? `0 2px 8px ${COLORS.shadow}` : 'none',
             }}
             onClick={() => setActiveTab(idx)}
           >
@@ -1159,8 +1168,7 @@ const Dashboard = () => {
         style={{
           maxWidth: '100%',
           width: '100vw',
-          //margin: '2rem auto',
-          background: '#fff',
+          background: COLORS.gray,
           borderRadius: '20px',
           boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
           padding: 'min(2.5rem, 5vw)',
@@ -1194,7 +1202,7 @@ const Dashboard = () => {
         <Link to="/career-insights" style={{ textDecoration: 'none' }}>
           <button
             className="btn btn-info"
-            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#2dd4bf', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 'bold', marginRight: '1rem' }}
+            style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: COLORS.tealDark, border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 'bold', marginRight: '1rem' }}
           >
             Career Insights
           </button>

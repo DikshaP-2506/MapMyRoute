@@ -24,9 +24,9 @@ const features = [
 const LandingPage = () => (
   <div className="min-vh-100 d-flex flex-column" style={{ fontFamily: 'sans-serif', background: `linear-gradient(135deg, ${TEAL.lighter} 0%, ${TEAL.light} 100%)`, width: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
     {/* Navbar */}
-    <nav className="navbar navbar-expand-lg navbar-light shadow-sm" style={{ zIndex: 10, background: TEAL.main }}>
+    <nav className="navbar navbar-expand-lg navbar-light shadow-sm" style={{ zIndex: 10, background: TEAL.main, minHeight: 80, padding: '1.2rem 0' }}>
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand fw-bold fs-3" style={{ color: '#fff' }}>
+        <Link to="/" className="navbar-brand fw-bold fs-3" style={{ color: '#fff', fontSize: '2.5rem', letterSpacing: '1px' }}>
           MapMyRoute
         </Link>
         <div className="ms-auto d-flex gap-2">
@@ -50,12 +50,14 @@ const LandingPage = () => (
       style={{
         minHeight: '50vh',
         width: '100%',
-        background: `url(${myBg}) center/cover no-repeat`,
+        background: `url(${myBg}) center 30%/cover no-repeat`,
         boxShadow: `0 2px 16px ${TEAL.shadow}`,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'rgba(20,184,166,0.55)', zIndex: 1 }}></div>
-      <div className="container position-relative py-5" style={{ zIndex: 2, maxWidth: 700, marginLeft: 'auto', textAlign: 'right', marginRight: '4vw' }}>
+      <div className="container position-relative py-5" style={{ zIndex: 3, maxWidth: 700, marginLeft: 'auto', textAlign: 'right', marginRight: '4vw' }}>
         <h1 className="display-3 fw-bold mb-3" style={{ textShadow: `0 2px 8px ${TEAL.shadow}` }}>
           AI-Powered Personalized Skill Roadmaps
         </h1>
@@ -90,23 +92,6 @@ const LandingPage = () => (
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="container rounded-4 shadow p-4 mb-4" style={{ background: TEAL.lighter, width: '100%', maxWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
-        <h2 className="text-center mb-3" style={{ color: TEAL.main }}>Testimonials</h2>
-        <div className="row justify-content-center g-3">
-          <div className="col-12 col-md-6">
-            <blockquote className="blockquote rounded-3 p-3 shadow-sm text-center" style={{ background: TEAL.light }}>
-              "This app changed how I learn!"<br /><span className="fw-semibold" style={{ color: TEAL.main }}>— Student</span>
-            </blockquote>
-          </div>
-          <div className="col-12 col-md-6">
-            <blockquote className="blockquote rounded-3 p-3 shadow-sm text-center" style={{ background: TEAL.light }}>
-              "The AI roadmap is so helpful."<br /><span className="fw-semibold" style={{ color: TEAL.accent }}>— Developer</span>
-            </blockquote>
-          </div>
-        </div>
-      </section>
-
       {/* Sample Roadmap Demo */}
       <section className="container rounded-4 shadow p-4 mb-4" style={{ background: TEAL.lighter, width: '100%', maxWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
         <h2 className="text-center mb-3" style={{ color: TEAL.main }}>Explore a Sample Roadmap</h2>
@@ -115,11 +100,6 @@ const LandingPage = () => (
         </div>
       </section>
     </div>
-
-    {/* Footer */}
-    <footer className="text-white text-center py-3 mt-auto" style={{ fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444' }}>
-      &copy; 2025 MapMyRoute. All rights reserved.
-    </footer>
   </div>
 );
 
