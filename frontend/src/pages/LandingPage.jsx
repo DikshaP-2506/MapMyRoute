@@ -37,7 +37,7 @@ const features = [
     icon: '📚',
     label: 'Resource Library',
     desc: `Access a curated library of resources for every step of your roadmap. Find the best articles, videos, and practice problems, all in one place.`,
-    img: 'resources',
+    img: resources,
   },
   {
     icon: '🌐',
