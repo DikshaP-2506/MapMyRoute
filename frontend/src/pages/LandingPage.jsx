@@ -13,12 +13,42 @@ const TEAL = {
 };
 
 const features = [
-  { icon: '🧠', label: 'Personalized AI Roadmaps' },
-  { icon: '🗓️', label: 'Weekly Planner' },
-  { icon: '📈', label: 'Progress Analytics' },
-  { icon: '📚', label: 'Resource Library' },
-  { icon: '🌐', label: 'Public Roadmap Sharing' },
-  { icon: '🔐', label: 'Google Login' },
+  {
+    icon: '🧠',
+    label: 'Personalized AI Roadmaps',
+    desc: `Get a learning path tailored to your goals, experience, and schedule. Our AI analyzes your needs and crafts a unique roadmap just for you, so you always know what to learn next.`,
+    img: 'https://via.placeholder.com/180x120?text=AI+Roadmap',
+  },
+  {
+    icon: '🗓️',
+    label: 'Weekly Planner',
+    desc: `Stay organized with a weekly planner that breaks your roadmap into manageable tasks. Track your progress and never miss a learning milestone again.`,
+    img: 'https://via.placeholder.com/180x120?text=Planner',
+  },
+  {
+    icon: '📈',
+    label: 'Progress Analytics',
+    desc: `Visualize your learning journey with detailed analytics. See your strengths, identify areas for improvement, and celebrate your achievements along the way.`,
+    img: 'https://via.placeholder.com/180x120?text=Analytics',
+  },
+  {
+    icon: '📚',
+    label: 'Resource Library',
+    desc: `Access a curated library of resources for every step of your roadmap. Find the best articles, videos, and practice problems, all in one place.`,
+    img: 'https://via.placeholder.com/180x120?text=Library',
+  },
+  {
+    icon: '🌐',
+    label: 'Public Roadmap Sharing',
+    desc: `Share your progress and roadmaps with friends or the community. Inspire others and get feedback on your learning journey.`,
+    img: 'https://via.placeholder.com/180x120?text=Sharing',
+  },
+  {
+    icon: '🔐',
+    label: 'Google Login',
+    desc: `Sign up and log in securely with your Google account. Your data is safe, and you can access your roadmap from any device.`,
+    img: 'https://via.placeholder.com/180x120?text=Google+Login',
+  },
 ];
 
 const LandingPage = () => (
@@ -80,13 +110,29 @@ const LandingPage = () => (
     {/* Main Content */}
     <div className="flex-grow-1">
       {/* Features Overview */}
-      <section className="container rounded-4 shadow p-4 mb-4" style={{ background: TEAL.lighter, width: '100%', maxWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
-        <h2 className="text-center mb-4" style={{ color: TEAL.main }}>Features</h2>
-        <div className="row g-4 justify-content-center">
-          {features.map(f => (
-            <div key={f.label} className="col-6 col-md-4 col-lg-3 text-center">
-              <div className="fs-1 mb-2" style={{ color: TEAL.main }}>{f.icon}</div>
-              <div className="fw-semibold" style={{ color: TEAL.dark }}>{f.label}</div>
+      <section style={{ width: '100vw', background: 'none', padding: '0', margin: '0', boxSizing: 'border-box' }}>
+        <h2 className="text-center mb-5" style={{ color: TEAL.main, fontSize: '2.5rem', fontWeight: 700, letterSpacing: '1px' }}>Features</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', width: '100%' }}>
+          {features.map((f, idx) => (
+            <div key={f.label} style={{
+              display: 'flex',
+              flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              gap: '4vw',
+              padding: '3rem 0',
+              background: 'none',
+              boxSizing: 'border-box',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ flex: '0 1 420px', display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 260 }}>
+                <img src={f.img} alt={f.label} style={{ width: '100%', maxWidth: 380, height: 220, objectFit: 'cover', borderRadius: 18, boxShadow: `0 4px 24px ${TEAL.shadow}` }} />
+              </div>
+              <div style={{ flex: '1 1 420px', minWidth: 260, padding: '0 2vw' }}>
+                <div style={{ fontWeight: 700, fontSize: '2rem', color: TEAL.dark, marginBottom: '1rem' }}>{f.label}</div>
+                <div style={{ color: TEAL.dark, fontSize: '1.2rem', lineHeight: 1.7 }}>{f.desc}</div>
+              </div>
             </div>
           ))}
         </div>
