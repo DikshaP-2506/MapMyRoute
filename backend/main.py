@@ -724,16 +724,28 @@ def export_roadmap(skill_path_id: int, format: str = "pdf", user: UserDB = Depen
         pdf.set_font("Arial", 'I', 12)
         pdf.multi_cell(0, 10, str(path.description or ""), align='C')
         pdf.ln(4)
+        # Summary
+        pdf.set_font("Arial", '', 12)
+        pdf.cell(0, 10, f"Total Weeks: {len(roadmap.get('weeks', []))}", ln=True)
+        pdf.ln(2)
         # Roadmap weeks
         for week in roadmap.get("weeks", []):
             pdf.set_font("Arial", 'B', 14)
             pdf.ln(4)
+            pdf.set_text_color(34, 197, 94)  # green for week header
             pdf.cell(0, 10, f"Week {week['week']}", ln=True)
+            pdf.set_text_color(0, 0, 0)
             pdf.set_font("Arial", '', 12)
             for goal in week["goals"]:
-                pdf.cell(10)  # indent
-                pdf.set_font("Arial", '', 12)
-                pdf.cell(0, 8, f"- {goal}", ln=True)
+                x = pdf.get_x()
+                pdf.set_x(x + 12)  # indent
+                pdf.multi_cell(0, 8, f"- {goal}")
+            # Draw a line after each week
+            pdf.ln(1)
+            pdf.set_draw_color(200, 200, 200)
+            pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+            pdf.ln(2)
+        pdf.set_text_color(0, 0, 0)
         pdf_output = io.BytesIO(pdf.output(dest='S').encode('latin1'))
         return StreamingResponse(pdf_output, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=roadmap_{skill_path_id}.pdf"})
 
