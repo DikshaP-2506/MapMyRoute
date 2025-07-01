@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import myBg from '../assets/my-bg.png';
+import weeklyPlannerImg from '../assets/weeklyplanner.jpg';
+import resources from '../assets/resources.jpg';
 
 // Teal color palette
 const TEAL = {
@@ -23,7 +25,7 @@ const features = [
     icon: '🗓️',
     label: 'Weekly Planner',
     desc: `Stay organized with a weekly planner that breaks your roadmap into manageable tasks. Track your progress and never miss a learning milestone again.`,
-    img: 'https://via.placeholder.com/180x120?text=Planner',
+    img: weeklyPlannerImg,
   },
   {
     icon: '📈',
@@ -35,7 +37,7 @@ const features = [
     icon: '📚',
     label: 'Resource Library',
     desc: `Access a curated library of resources for every step of your roadmap. Find the best articles, videos, and practice problems, all in one place.`,
-    img: 'https://via.placeholder.com/180x120?text=Library',
+    img: 'resources',
   },
   {
     icon: '🌐',

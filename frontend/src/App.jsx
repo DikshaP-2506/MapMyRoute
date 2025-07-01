@@ -14,6 +14,7 @@ import CareerInsights from "./pages/CareerInsights";
 import LandbotWidgetLoader from "./LandbotWidgetLoader";
 import myBg from "./assets/background_image.jpg";
 
+
 // Add TEAL color palette for use in Header
 const TEAL = {
   main: '#14b8a6',
