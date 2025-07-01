@@ -26,7 +26,10 @@ const LoginPage = () => {
     setError("");
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+      localStorage.setItem("token", token);
       navigate("/dashboard");
+      window.location.reload();
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         setError(err.message);
@@ -43,8 +46,19 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
+      const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Login failed");
+      }
+      const data = await res.json();
+      localStorage.setItem("token", data.access_token);
       navigate("/dashboard");
+      window.location.reload();
     } catch (err) {
       setError(err.message);
     } finally {

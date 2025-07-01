@@ -32,6 +32,16 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, form.email, form.password);
+      // Register user in backend as well
+      const res = await fetch("http://localhost:8000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Backend registration failed");
+      }
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);

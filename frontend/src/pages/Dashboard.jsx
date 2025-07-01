@@ -136,7 +136,7 @@ function MySkillPathsTab() {
   };
 
   return (
-    <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+    <div style={{ maxWidth: '80vw', width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 className="mb-4" style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>My Skill Paths</h3>
       {loading && <div>Loading...</div>}
       {error && <div className="text-danger">{error}</div>}
@@ -312,9 +312,9 @@ function RoadmapGeneratorTab() {
   };
 
   return (
-    <div style={{ maxWidth: 500, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+    <div style={{ maxWidth: '80vw', width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>AI Roadmap Generator</h3>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400, width: '100%', margin: '0 auto' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 700, width: '100%', margin: '0 auto' }}>
         <input name="topic" placeholder="Skill Topic (e.g. Frontend Development)" value={form.topic} onChange={handleChange} required style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }} />
         <select name="level" value={form.level} onChange={handleChange} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem' }}>
           <option>Beginner</option>
@@ -384,7 +384,7 @@ function Section({ title, items, renderItem }) {
 
 function Card({ children }) {
   return (
-    <div style={{ background: '#fff', borderRadius: '10px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: '1.2rem', minWidth: '250px', maxWidth: '350px', flex: '1 1 250px' }}>
+    <div style={{ background: '#fff', borderRadius: '10px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: '1.2rem', minWidth: '250px', maxWidth: '400px', flex: '1 1 250px' }}>
       {children}
     </div>
   );
@@ -435,10 +435,10 @@ function ResourcesLibraryTab() {
     arr ? [...arr].sort((a, b) => (b.rank || b.userRating || 0) - (a.rank || a.userRating || 0)) : [];
 
   return (
-    <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+    <div style={{ maxWidth: '80vw', width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center' }}>Resources Library</h3>
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 220 }} />
+        <input name="topic" placeholder="Search by topic" value={searchTopic} onChange={handleTopicInput} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 160, flex: '1 1 160px', maxWidth: 300 }} />
         <select name="difficulty" value={difficulty} onChange={handleDifficultyChange} style={{ border: `1.5px solid ${COLORS.teal}`, borderRadius: 8, padding: '0.5rem', fontSize: '1rem', minWidth: 120 }}>
           <option value="">All Levels</option>
           <option value="Beginner">Beginner</option>
@@ -557,6 +557,8 @@ function WeeklyPlannerTab({ skillPathId }) {
         if (!res.ok) throw new Error("Failed to fetch planner tasks");
         const data = await res.json();
         setTasks(Array.isArray(data) ? data : []);
+        // Debug: log all tasks and their due_date
+        console.log('Loaded planner tasks:', data.map(t => ({ id: t.id, due_date: t.due_date, status: t.status, description: t.description })));
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
@@ -630,6 +632,9 @@ function WeeklyPlannerTab({ skillPathId }) {
 
   // Defensive: today's date string
   const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Filter tasks for today
+  const todaysTasks = safeTasks.filter(t => t.due_date === todayStr);
 
   // Defensive: error message rendering
   const getErrorMessage = (err) => {
@@ -768,14 +773,14 @@ function WeeklyPlannerTab({ skillPathId }) {
     if (!safeTasks.length) return <div>No tasks found for this skill path.</div>;
 
     return (
-      <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+      <div style={{ maxWidth: '50vw', width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
         <h2 style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center', marginBottom: 8 }}>Weekly Planner</h2>
         <h3 style={{ fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)', textAlign: 'center', marginBottom: 16 }}>Roadmap Calendar</h3>
-        <button onClick={shiftPendingTasks} disabled={shifting} style={{ marginBottom: 16, background: '#ffb347', color: '#333', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', maxWidth: 260, display: 'block', marginLeft: 'auto', marginRight: 'auto', fontSize: '1rem' }}>
+        <button onClick={shiftPendingTasks} disabled={shifting} style={{ marginBottom: 16, background: '#ffb347', color: '#333', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', width: '100%', maxWidth: 300, display: 'block', marginLeft: 'auto', marginRight: 'auto', fontSize: '1rem' }}>
           {shifting ? 'Shifting...' : 'Shift Pending Tasks'}
         </button>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', marginBottom: 32 }}>
+          <div style={{ maxWidth: 500, width: '100%', margin: '0 auto', marginBottom: 32 }}>
             <Calendar
               minDate={minDate}
               maxDate={maxDate}
@@ -873,6 +878,27 @@ function WeeklyPlannerTab({ skillPathId }) {
             🎉 Congratulations! Task Completed! 🎉
           </div>
         )}
+        {/* Today's Tasks Section */}
+        <div style={{ marginBottom: 24 }}>
+          <h4 style={{ color: COLORS.tealDark, fontSize: 'clamp(1.05rem, 1.5vw, 1.2rem)' }}>Today's Tasks</h4>
+          {todaysTasks.length === 0 ? (
+            <div style={{ color: '#888', fontStyle: 'italic' }}>No tasks due today.</div>
+          ) : (
+            <ul style={{ paddingLeft: 16, margin: 0 }}>
+              {todaysTasks.map(task => (
+                <li key={task.id} style={{ marginBottom: 10, background: COLORS.tealLighter, borderRadius: 8, padding: 10, boxShadow: `0 1px 4px ${COLORS.shadow}` }}>
+                  <div style={{ fontWeight: 500 }}>{task.description}</div>
+                  <div style={{ fontSize: 13, color: COLORS.tealDark }}>Status: <span style={{ color: task.status === 'complete' ? COLORS.teal : (task.due_date < todayStr ? 'red' : COLORS.tealDark) }}>{task.status === 'complete' ? 'Complete' : (task.due_date < todayStr ? 'Overdue' : task.status)}</span></div>
+                  {task.status !== 'complete' ? (
+                    <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: COLORS.teal, color: '#fff', border: 'none', marginTop: 4 }}>Mark Complete</button>
+                  ) : (
+                    <button onClick={() => handleTaskComplete(task.id)} style={{ fontSize: '0.85em', borderRadius: 6, padding: '2px 10px', background: COLORS.tealLight, color: COLORS.tealDark, border: 'none', marginTop: 4 }}>Mark Pending</button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <style>{`
           .react-calendar__tile.calendar-current-week {
             background: ${COLORS.tealLight} !important;
@@ -898,6 +924,13 @@ function WeeklyPlannerTab({ skillPathId }) {
     return <div style={{ color: 'red', margin: '2rem 0' }}>Unexpected error: {getErrorMessage(err)}</div>;
   }
 }
+
+// Add specific colors for analytics
+const STATUS_COLORS = {
+  Completed: '#22c55e', // green
+  Pending: '#f59e42',  // orange
+  Deferred: '#64748b'  // gray
+};
 
 function ProgressAnalyticsTab({ skillPathId }) {
   const [stats, setStats] = useState(null);
@@ -960,7 +993,7 @@ function ProgressAnalyticsTab({ skillPathId }) {
   ];
 
   return (
-    <div style={{ maxWidth: 900, width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
+    <div style={{ maxWidth: '80vw', width: '100%', margin: '0 auto', boxSizing: 'border-box', padding: '1rem' }}>
       <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 2rem)', textAlign: 'center', marginBottom: 16 }}>Progress Analytics</h3>
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         <div style={{ minWidth: 260, flex: 1 }}>
@@ -969,7 +1002,7 @@ function ProgressAnalyticsTab({ skillPathId }) {
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                 {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || COLORS.gray} />
                 ))}
               </Pie>
               <Tooltip />
@@ -1092,7 +1125,6 @@ const Dashboard = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: '#fff',
         fontFamily: 'sans-serif',
         width: '100vw',
         boxSizing: 'border-box',
@@ -1105,6 +1137,7 @@ const Dashboard = () => {
           color: COLORS.teal,
           marginTop: '2rem',
           fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
+          fontWeight: 'bold',
         }}
       >
         Dashboard
@@ -1166,14 +1199,10 @@ const Dashboard = () => {
       </nav>
       <section
         style={{
-          maxWidth: '100%',
-          width: '100vw',
-          background: COLORS.gray,
-          borderRadius: '20px',
-          boxShadow: '0 8px 32px rgba(79,140,255,0.10)',
-          padding: 'min(2.5rem, 5vw)',
-          minHeight: '350px',
-          boxSizing: 'border-box',
+          background: 'rgba(255,255,255,0.85)',
+          borderRadius: 16,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          backdropFilter: 'blur(10px)',
         }}
       >
         {tabContent[activeTab]}

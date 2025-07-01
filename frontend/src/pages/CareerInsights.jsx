@@ -108,7 +108,15 @@ const CareerInsights = () => {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "2rem auto", padding: "2rem", background: "#f0fdfa", borderRadius: 16, boxShadow: "0 2px 12px #14b8a622" }}>
+    <div style={{
+      maxWidth: '85vw',
+      width: "100%",
+      margin: "0 auto",
+      padding: "10.0rem 2rem",
+      background: "#f0fdfa",
+      borderRadius: 18,
+      boxShadow: "0 2px 12px #14b8a622"
+    }}>
       <h2 style={{ color: '#2dd4bf', textAlign: 'center', marginBottom: '2rem' }}>Career Insights</h2>
       <form onSubmit={handleShowInsights} style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
         <div>

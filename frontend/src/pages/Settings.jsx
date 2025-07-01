@@ -69,14 +69,34 @@ const Settings = () => {
     try {
       const token = await getAuthToken();
       setLoading(true);
+      // Delete from backend (Postgres)
       const res = await fetch("http://localhost:8000/user/delete", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Delete failed");
-      setMsg("Account deleted. Logging out...");
+      if (!res.ok) throw new Error("Delete failed (backend)");
+      // Delete from Firebase Auth
+      if (auth.currentUser) {
+        try {
+          await auth.currentUser.delete();
+        } catch (firebaseErr) {
+          // If Firebase requires recent login, sign out instead
+          if (firebaseErr.code === 'auth/requires-recent-login') {
+            setMsg("Account deleted from backend. Please log in again to delete from Firebase.");
+            setTimeout(() => {
+              auth.signOut();
+              window.location.href = "/";
+            }, 2500);
+            return;
+          } else {
+            throw firebaseErr;
+          }
+        }
+      }
+      setMsg("Account deleted from both systems. Logging out...");
       setTimeout(() => {
         auth.signOut();
+        localStorage.removeItem("token");
         window.location.href = "/";
       }, 2000);
     } catch (err) {
@@ -132,6 +152,16 @@ const Settings = () => {
             disabled={loading}
           >
             Delete Account
+          </button>
+        </div>
+        <div className="mb-4">
+          <h4 style={{ color: TEAL.dark, fontSize: 'clamp(1.05rem, 1.5vw, 1.3rem)' }}>Logout</h4>
+          <button
+            onClick={() => { auth.signOut(); localStorage.removeItem("token"); window.location.href = "/"; }}
+            style={{ background: TEAL.dark, color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 'bold', fontSize: '1rem' }}
+            disabled={loading}
+          >
+            Logout
           </button>
         </div>
         {msg && <div className={`mt-4 fw-bold`} style={{ color: msg.startsWith('Exported') ? TEAL.main : msg.startsWith('Account deleted') ? TEAL.accent : 'red' }}>{msg}</div>}

@@ -12,6 +12,7 @@ import SignupPage from "./pages/SignupPage";
 import MicroSkillChallenge from "./pages/MicroSkillChallenge";
 import CareerInsights from "./pages/CareerInsights";
 import LandbotWidgetLoader from "./LandbotWidgetLoader";
+import myBg from "./assets/background_image.jpg";
 
 // Add TEAL color palette for use in Header
 const TEAL = {
@@ -25,28 +26,43 @@ const TEAL = {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(u => setUser(u));
-    // If not logged in via Firebase, check backend token and fetch user info from backend (Postgres)
-    if (!user && localStorage.getItem("token")) {
-      fetch("http://localhost:8000/user/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data && data.email) {
-            setUser({
-              displayName: data.name || "",
-              email: data.email
-            });
+    setUserLoading(true);
+    const unsub = auth.onAuthStateChanged(u => {
+      if (u) {
+        setUser(u);
+        setUserLoading(false);
+      } else if (localStorage.getItem("token")) {
+        fetch("http://localhost:8000/user/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
-        });
-    }
+        })
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data && data.email) {
+              setUser({
+                displayName: data.name || "",
+                email: data.email
+              });
+            } else {
+              setUser(null);
+            }
+            setUserLoading(false);
+          })
+          .catch(() => {
+            setUser(null);
+            setUserLoading(false);
+          });
+      } else {
+        setUser(null);
+        setUserLoading(false);
+      }
+    });
     return () => unsub();
-  }, [user]);
+  }, []);
 
   const getInitials = (name, email) => {
     if (name) {
@@ -61,12 +77,30 @@ function App() {
   // Use location to hide nav links on landing page
   const location = window.location.pathname;
   const hideNavLinks = location === "/";
+  const isLanding = window.location.pathname === "/";
 
   return (
     <>
       <Router>
-        {/* Only show Header on non-landing pages */}
-        {window.location.pathname !== "/" && (
+        {/* Background image for all pages except landing */}
+        {!isLanding && (
+          <div
+            style={{
+              minHeight: "100vh",
+              width: "100vw",
+              backgroundImage: `url(${myBg})`,
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              zIndex: -1,
+            }}
+          />
+        )}
+        {/* Only show Header on non-landing pages and after user loading is done */}
+        {window.location.pathname !== "/" && !userLoading && (
           <Header user={user} getInitials={getInitials} hideNavLinks={hideNavLinks} />
         )}
         <main
@@ -116,18 +150,15 @@ function Header({ user, getInitials, hideNavLinks }) {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <nav className="navbar-nav ms-auto gap-lg-3 gap-2 align-items-center">
-            {/* Home button, hidden on landing page */}
-            {window.location.pathname !== "/" && (
-              <Link to="/" className="nav-link text-white">
-                <button className="btn btn-light" style={{ color: TEAL.main, fontWeight: 'bold', marginRight: 8 }}>Home</button>
-              </Link>
-            )}
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
+                {user && (
+                  <Link to="/settings" className="nav-link text-white">Settings</Link>
+                )}
               </>
             )}
-            {user ? (
+            {user && user.email ? (
               <span
                 onClick={() => navigate("/settings")}
                 title="Settings"
@@ -138,8 +169,8 @@ function Header({ user, getInitials, hideNavLinks }) {
                   width: 38,
                   height: 38,
                   borderRadius: "50%",
-                  background: "#2dd4bf",
-                  color: "#0f766e",
+                  background: "#7c5fd4",
+                  color: "#fff",
                   fontWeight: "bold",
                   fontSize: "1.1rem",
                   cursor: "pointer",

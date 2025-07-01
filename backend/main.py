@@ -1423,3 +1423,7 @@ def ai_recalculate_roadmap(user_id: int, db: Session = Depends(get_db)):
         db.commit()
         updated_count += 1
     return {"message": f"AI intelligently updated {updated_count} skill path(s) with a new roadmap."}
+
+@app.get("/user/me")
+def get_me(user: UserDB = Depends(get_current_user)):
+    return {"email": user.email, "name": user.name}
