@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import myBg from '../assets/my-bg.png';
 import weeklyPlannerImg from '../assets/weeklyplanner.jpg';
 import resources from '../assets/resources.jpg';
+import aiRoadmapImg from '../assets/airoadmap.jpg';
+import analyticsImg from '../assets/analytics.jpg';
+import sharingImg from '../assets/sharing.jpg';
+import googleLoginImg from '../assets/googlelogin.jpg';
 
 // Teal color palette
 const TEAL = {
@@ -19,7 +23,7 @@ const features = [
     icon: '🧠',
     label: 'Personalized AI Roadmaps',
     desc: `Get a learning path tailored to your goals, experience, and schedule. Our AI analyzes your needs and crafts a unique roadmap just for you, so you always know what to learn next.`,
-    img: 'https://via.placeholder.com/180x120?text=AI+Roadmap',
+    img: aiRoadmapImg,
   },
   {
     icon: '🗓️',
@@ -31,7 +35,7 @@ const features = [
     icon: '📈',
     label: 'Progress Analytics',
     desc: `Visualize your learning journey with detailed analytics. See your strengths, identify areas for improvement, and celebrate your achievements along the way.`,
-    img: 'https://via.placeholder.com/180x120?text=Analytics',
+    img: analyticsImg,
   },
   {
     icon: '📚',
@@ -43,13 +47,13 @@ const features = [
     icon: '🌐',
     label: 'Public Roadmap Sharing',
     desc: `Share your progress and roadmaps with friends or the community. Inspire others and get feedback on your learning journey.`,
-    img: 'https://via.placeholder.com/180x120?text=Sharing',
+    img: sharingImg,
   },
   {
     icon: '🔐',
     label: 'Google Login',
     desc: `Sign up and log in securely with your Google account. Your data is safe, and you can access your roadmap from any device.`,
-    img: 'https://via.placeholder.com/180x120?text=Google+Login',
+    img: googleLoginImg,
   },
 ];
 
@@ -112,9 +116,28 @@ const LandingPage = () => (
     {/* Main Content */}
     <div className="flex-grow-1">
       {/* Features Overview */}
-      <section style={{ width: '100vw', background: 'none', padding: '0', margin: '0', boxSizing: 'border-box' }}>
-        <h2 className="text-center mb-5" style={{ color: TEAL.main, fontSize: '2.5rem', fontWeight: 700, letterSpacing: '1px' }}>Features</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', width: '100%' }}>
+      <section style={{ width: '100%', background: 'none', padding: '0', margin: '0', boxSizing: 'border-box' }}>
+        <h2 className="text-center" style={{
+          color: TEAL.main,
+          fontSize: '2.7rem',
+          fontWeight: 700,
+          letterSpacing: '1px',
+          marginTop: '3.5rem',
+          marginBottom: '2.5rem',
+          fontFamily: `'Poppins', 'Montserrat', 'Playfair Display', serif`,
+        }}>
+          Features
+        </h2>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4rem',
+          width: '100%',
+          maxWidth: 1100,
+          margin: '0 auto',
+          padding: '0 2vw',
+          boxSizing: 'border-box',
+        }}>
           {features.map((f, idx) => (
             <div key={f.label} style={{
               display: 'flex',
@@ -122,11 +145,13 @@ const LandingPage = () => (
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              gap: '4vw',
-              padding: '3rem 0',
+              gap: '3vw',
+              padding: '2.5rem 0',
               background: 'none',
               boxSizing: 'border-box',
               flexWrap: 'wrap',
+              borderRadius: 24,
+              boxShadow: '0 2px 12px rgba(20,184,166,0.06)',
             }}>
               <div style={{ flex: '0 1 420px', display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 260 }}>
                 <img src={f.img} alt={f.label} style={{ width: '100%', maxWidth: 380, height: 220, objectFit: 'cover', borderRadius: 18, boxShadow: `0 4px 24px ${TEAL.shadow}` }} />
