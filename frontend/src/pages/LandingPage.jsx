@@ -7,6 +7,7 @@ import aiRoadmapImg from '../assets/airoadmap.jpg';
 import analyticsImg from '../assets/analytics.jpg';
 import sharingImg from '../assets/sharing.jpg';
 import googleLoginImg from '../assets/googlelogin.jpg';
+import logo from '../assets/logo.png';
 
 // Teal color palette
 const TEAL = {
@@ -60,22 +61,27 @@ const features = [
 const LandingPage = () => (
   <div className="min-vh-100 d-flex flex-column" style={{ fontFamily: 'sans-serif', background: `linear-gradient(135deg, ${TEAL.lighter} 0%, ${TEAL.light} 100%)`, width: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
     {/* Navbar */}
-    <nav className="navbar navbar-expand-lg navbar-light shadow-sm" style={{ zIndex: 10, background: TEAL.main, minHeight: 80, padding: '1.2rem 0' }}>
+    <nav className="navbar navbar-expand-lg navbar-light shadow-sm" style={{ zIndex: 10, background: TEAL.main, minHeight: 48, padding: '0.3rem 0' }}>
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand fw-bold fs-3" style={{ color: '#fff', fontSize: '2.5rem', letterSpacing: '1px' }}>
-          MapMyRoute
-        </Link>
-        <div className="ms-auto d-flex gap-2">
-          <Link to="/login">
-            <button className="btn btn-outline-light fw-semibold" style={{ borderColor: '#fff', color: '#fff' }}>
-              Login
-            </button>
+        <div className="d-flex w-100 align-items-center justify-content-between">
+          <Link to="/" className="navbar-brand fw-bold fs-3" style={{ color: '#fff', fontSize: '2.5rem', letterSpacing: '1px', fontFamily: 'Libre Baskerville, serif', display: 'flex', alignItems: 'center', gap: '1.2rem', marginLeft: 0 }}>
+            <img src={logo} alt="Logo" style={{ height: 80, width: 80, objectFit: 'contain', marginLeft: 12, marginRight: 8 }} />
+            <span style={{ fontSize: '2.5rem', lineHeight: 1, fontWeight: 800 }}>
+              MapMyRoute
+            </span>
           </Link>
-          <Link to="/signup">
-            <button className="btn btn-light fw-semibold" style={{ background: '#fff', color: TEAL.main, border: 'none' }}>
-              Sign Up
-            </button>
-          </Link>
+          <div className="d-flex gap-2">
+            <Link to="/login">
+              <button className="btn btn-outline-light fw-semibold" style={{ borderColor: '#fff', color: '#fff' }}>
+                Login
+              </button>
+            </Link>
+            <Link to="/signup">
+              <button className="btn btn-light fw-semibold" style={{ background: '#fff', color: TEAL.main, border: 'none' }}>
+                Sign Up
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
