@@ -1,7 +1,7 @@
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { auth } from "./firebase";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -135,8 +135,8 @@ function App() {
         <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
           &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
         </footer>
+        <LandbotWidgetLoader />
       </Router>
-      <LandbotWidgetLoader />
     </>
   );
 }
@@ -167,7 +167,6 @@ function Header({ user, getInitials, hideNavLinks }) {
             {!hideNavLinks && (
               <>
                 <Link to="/dashboard" className="nav-link text-white">Dashboard</Link>
-                <Link to="/" className="nav-link text-white">Home</Link>
               </>
             )}
             {user && user.email && (
