@@ -80,7 +80,8 @@ class Question(Base):
     quiz_id = Column(Integer, ForeignKey("quizzes.id"))
     question_text = Column(Text)
     options = Column(JSON)
-    correct_option = Column(String(10))
+    correct_option = Column(String)  # Keep for backward compatibility
+    correct_option_index = Column(Integer)  # New: index of correct option
     skill_tag = Column(String(100))
 
 class UserQuizAttempt(Base):
@@ -1269,12 +1270,14 @@ def get_user_progress(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/quiz/personalized/{user_id}")
 def get_personalized_quiz(user_id: int, db: Session = Depends(get_db)):
-    # Fetch user progress
-    progress = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
-    skill_tags = progress.current_skills if progress else []
+    # Fetch all skill paths for the user
+    skill_paths = db.query(SkillPathDB).filter_by(user_id=user_id).all()
     all_questions = []
-    for skill_tag in skill_tags:
-        # Fetch or create a quiz for this skill
+    quiz_id_to_return = None
+    for skill_path in skill_paths:
+        skill_tag = skill_path.title
+        print(f"[QUIZ DEBUG] Skill Path: {skill_tag}")
+        # Fetch or create a quiz for this skill (for quiz_id)
         quiz_obj = db.query(Quiz).filter_by(title=skill_tag).first()
         if not quiz_obj:
             quiz_obj = Quiz(title=skill_tag, description=f"Auto-generated quiz for {skill_tag}")
@@ -1282,58 +1285,100 @@ def get_personalized_quiz(user_id: int, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(quiz_obj)
         quiz_id = quiz_obj.id
-        # Always initialize questions as a list
-        questions = db.query(Question).filter(Question.skill_tag == skill_tag).all()
-        if not questions:
-            # Fetch completed tasks for this skill
-            skill_path = db.query(SkillPathDB).filter_by(title=skill_tag, user_id=user_id).first()
-            completed_tasks = []
-            if skill_path:
-                completed_tasks = db.query(PlannerDB).filter_by(skill_path_id=skill_path.id, status="complete").all()
-            completed_descriptions = [t.description for t in completed_tasks]
-            # Use Groq to generate questions based on completed tasks
-            if completed_descriptions:
-                prompt = (
-                    f"Generate 3 quiz questions (with 4 options each, and the correct answer) for the skill: {skill_tag}. "
-                    f"Base the questions on these completed tasks: {completed_descriptions}. "
-                    "Respond in JSON as a list: [{question_text, options, correct_option}]."
-                )
-                messages = [
-                    {"role": "system", "content": "You are a quiz generator."},
-                    {"role": "user", "content": prompt}
-                ]
+        if quiz_id_to_return is None:
+            quiz_id_to_return = quiz_id
+        # Fetch completed tasks for this skill path
+        completed_tasks = db.query(PlannerDB).filter_by(skill_path_id=skill_path.id, status="complete").all()
+        completed_descriptions = [t.description for t in completed_tasks]
+        print(f"[QUIZ DEBUG] Completed Descriptions: {completed_descriptions}")
+        # Always use Groq to generate questions based on completed tasks
+        questions = []
+        if completed_descriptions:
+            prompt = (
+                f"Generate 3 quiz questions (with 4 options each, and the correct answer) for the skill: {skill_tag}. "
+                f"Base the questions on these completed tasks: {completed_descriptions}. "
+                "Respond in JSON as a list: [{question_text, options, correct_option}]. "
+                "Strictly respond with valid JSON only. Do not include any explanations, markdown, or extra text."
+            )
+            messages = [
+                {"role": "system", "content": "You are a quiz generator."},
+                {"role": "user", "content": prompt}
+            ]
+            try:
+                content = call_groq(messages)
                 try:
-                    content = call_groq(messages)
                     generated = parse_json_from_response(content)
-                    # Save generated questions to DB
-                    for q in generated:
+                except Exception as e:
+                    print(f"Groq JSON parse error: {e}")
+                    print(f"Raw Groq response: {content}")
+                    # Try fallback repair/extract
+                    try:
+                        generated = fallback_parse_arrays(content)
+                        print("[QUIZ DEBUG] Used fallback_parse_arrays for Groq response.")
+                    except Exception as e2:
+                        print(f"Fallback JSON parse also failed: {e2}")
+                        continue  # Skip this skill if still broken
+                for q in generated:
+                    # Find the index of the correct option
+                    try:
+                        # Try to interpret correct_option as an index
+                        correct_index = int(q["correct_option"])
+                        if not (0 <= correct_index < len(q["options"])):
+                            raise ValueError
+                    except (ValueError, TypeError):
+                        # Fallback to fuzzy matching
+                        correct_index = None
+                        for idx, opt in enumerate(q["options"]):
+                            opt_str = str(opt).strip().lower()
+                            correct_str = str(q["correct_option"]).strip().lower()
+                            if (
+                                opt_str == correct_str or
+                                opt_str in correct_str or
+                                correct_str in opt_str
+                            ):
+                                correct_index = idx
+                                break
+                    if correct_index is None:
+                        print(f"[QUIZ WARNING] Could not find correct option for question: {q['question_text']}")
+                        print(f"[QUIZ WARNING] Options: {q['options']}")
+                        print(f"[QUIZ WARNING] Correct answer: {q['correct_option']}")
+                        continue  # Skip this question
+                    existing = db.query(Question).filter_by(
+                        quiz_id=quiz_id,
+                        question_text=q["question_text"],
+                        skill_tag=skill_tag
+                    ).first()
+                    if existing:
+                        question = existing
+                    else:
                         question = Question(
                             quiz_id=quiz_id,
                             question_text=q["question_text"],
                             options=q["options"],
                             correct_option=q["correct_option"],
+                            correct_option_index=correct_index,
                             skill_tag=skill_tag
                         )
                         db.add(question)
                         db.commit()
-                        questions.append(question)
-                except Exception as e:
-                    print(f"Groq question generation failed: {e}")
+                        db.refresh(question)
+                    questions.append({
+                        "id": question.id,
+                        "question_text": question.question_text,
+                        "options": question.options,
+                        "skill_tag": question.skill_tag
+                    })
+                print(f"[QUIZ DEBUG] Generated {len(questions)} questions for skill: {skill_tag}")
+            except Exception as e:
+                print(f"Groq question generation failed: {e}")
+        else:
+            print(f"[QUIZ DEBUG] No completed tasks for skill: {skill_tag}")
         all_questions.extend(questions)
-    quiz_id_to_return = all_questions[0].quiz_id if all_questions else None
+    print(f"[QUIZ DEBUG] Total questions returned: {len(all_questions)}")
     quiz = {
         "title": "Weekly Challenge",
         "quiz_id": quiz_id_to_return,
-        "questions": [
-            {
-                "id": q.id,
-                "question_text": q.question_text,
-                "options": q.options,
-                "correct_option": q.correct_option,
-                "skill_tag": q.skill_tag
-            }
-            for q in all_questions
-        ]
+        "questions": all_questions
     }
     return quiz
 
@@ -1341,15 +1386,20 @@ class QuizAttemptRequest(BaseModel):
     user_id: int
     quiz_id: int
     answers: dict
+    question_ids: list[int]
 
 @app.post("/quiz/attempt")
 def submit_quiz_attempt(body: QuizAttemptRequest, db: Session = Depends(get_db)):
     user_id = body.user_id
     quiz_id = body.quiz_id
     answers = body.answers
-    # Fetch correct answers
-    questions = db.query(Question).filter(Question.quiz_id == quiz_id).all()
-    score = sum(1 for q in questions if answers.get(str(q.id)) == q.correct_option)
+    question_ids = body.question_ids
+    # Fetch only the questions that were shown to the user
+    questions = db.query(Question).filter(Question.id.in_(question_ids)).all()
+    # Debug print for each question
+    for q in questions:
+        print(f"[QUIZ SCORING DEBUG] QID: {q.id}, User Index: {answers.get(str(q.id))}, Correct Index: {q.correct_option_index}, Options: {q.options}")
+    score = sum(1 for q in questions if answers.get(str(q.id)) == q.correct_option_index)
     attempt = UserQuizAttempt(
         user_id=user_id,
         quiz_id=quiz_id,

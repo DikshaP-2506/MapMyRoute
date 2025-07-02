@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS questions (
     quiz_id INTEGER REFERENCES quizzes(id),
     question_text TEXT,
     options JSONB, -- e.g. ["A", "B", "C", "D"]
-    correct_option VARCHAR(10),
+    correct_option TEXT,
+    correct_option_index INTEGER,
     skill_tag VARCHAR(100) -- for personalization
 );
 

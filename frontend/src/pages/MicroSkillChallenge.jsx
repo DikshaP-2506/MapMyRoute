@@ -43,18 +43,21 @@ const MicroSkillChallenge = ({ userId }) => {
     fetchHistory();
   }, [userId]);
 
-  const handleOptionChange = (qid, value) => {
-    setAnswers((prev) => ({ ...prev, [qid]: value }));
+  const handleOptionChange = (qid, index) => {
+    setAnswers((prev) => ({ ...prev, [qid]: index }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!quiz) return;
     try {
+      // Collect the IDs of the questions shown to the user
+      const question_ids = quiz.questions.map((q) => q.id);
       const res = await axios.post('http://127.0.0.1:8000/quiz/attempt', {
         user_id: userId,
         quiz_id: quiz.quiz_id, // use the quiz_id from the quiz object
         answers,
+        question_ids,
       });
       setResult(res.data);
     } catch (err) {
@@ -80,13 +83,13 @@ const MicroSkillChallenge = ({ userId }) => {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {q.options.map((opt, i) => (
-                <label key={i} style={{ display: 'flex', alignItems: 'center', background: answers[q.id] === opt ? '#e0f7fa' : '#f3f4f6', borderRadius: 8, padding: '0.5rem 1rem', cursor: 'pointer', border: answers[q.id] === opt ? '2px solid #14b8a6' : '1px solid #e0e0e0', fontWeight: answers[q.id] === opt ? 'bold' : 'normal' }}>
+                <label key={i} style={{ display: 'flex', alignItems: 'center', background: answers[q.id] === i ? '#e0f7fa' : '#f3f4f6', borderRadius: 8, padding: '0.5rem 1rem', cursor: 'pointer', border: answers[q.id] === i ? '2px solid #14b8a6' : '1px solid #e0e0e0', fontWeight: answers[q.id] === i ? 'bold' : 'normal' }}>
                   <input
                     type="radio"
                     name={`q_${q.id}`}
-                    value={opt}
-                    checked={answers[q.id] === opt}
-                    onChange={() => handleOptionChange(q.id, opt)}
+                    value={i}
+                    checked={answers[q.id] === i}
+                    onChange={() => handleOptionChange(q.id, i)}
                     required
                     style={{ marginRight: 10 }}
                   />
