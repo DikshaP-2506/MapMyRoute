@@ -168,7 +168,11 @@ function Header({ user, getInitials, hideNavLinks }) {
           aria-label="Toggle navigation"
           onClick={() => {
             if (window.innerWidth <= 768) {
-              navigate("/settings");
+              if (window.location.pathname === "/settings") {
+                window.history.back();
+              } else {
+                navigate("/settings");
+              }
             } else {
               const nav = document.getElementById("navbarNav");
               if (nav) nav.classList.toggle("show");
