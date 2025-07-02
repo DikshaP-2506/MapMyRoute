@@ -138,7 +138,7 @@ function App() {
         <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
           &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
         </footer>
-        {window.location.pathname === "/" && <LandbotWidgetLoader />}
+        {(window.location.pathname === "/") && <LandbotWidgetLoader />}
       </Router>
     </>
   );
@@ -162,7 +162,19 @@ function Header({ user, getInitials, hideNavLinks }) {
             MapMyRoute
           </span>
         </Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          className="navbar-toggler"
+          type="button"
+          aria-label="Toggle navigation"
+          onClick={() => {
+            if (window.innerWidth <= 768) {
+              navigate("/settings");
+            } else {
+              const nav = document.getElementById("navbarNav");
+              if (nav) nav.classList.toggle("show");
+            }
+          }}
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
