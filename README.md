@@ -180,18 +180,27 @@ To set up and run MapMyRoute locally, follow these steps:
 
     # Groq API
     GROQ_API_KEY=your_groq_api_key
-
     ```
     Be sure to add your `.env` files to `.gitignore` to keep your secrets safe!
+
+    **Create a .env file in frontend folder (frontend/.env):**
+    ```
+    VITE_API_URL=https://mapmyroute.onrender.com
+    ```
+    In your React code, access it with:
+    ```js
+    const apiUrl = import.meta.env.VITE_API_URL;
+    ```
+    **Note:** After changing the `.env` file, restart your dev server (`npm run dev`).
 6. **Firebase Authentication Setup:**
     - Create a Firebase project and enable Authentication.
     - Configure your Firebase credentials in your frontend application in firebase.js file.
-
+    - **Important:** Add your deployed frontend domain (e.g., `your-app.vercel.app`) to the list of authorized domains in the Firebase Console under Authentication → Sign-in method. This is required for Google login to work in production.
 
 ## Link to Deployed Application
 
 **(Provide the link to the deployed application here if available)**
-[Link to Deployed Application]
+[https://map-my-route.vercel.app/Link to Deployed Application]
 
 ## Future Roadmap or Improvements
 
