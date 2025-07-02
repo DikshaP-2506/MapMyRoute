@@ -1245,7 +1245,7 @@ const Dashboard = () => {
             className="btn btn-primary"
             style={{ fontSize: '1.1rem', padding: '0.75rem 2rem', background: '#14b8a6', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: 1 }}
           >
-            Take Your Weekly Quiz & Game Test!
+            Take Your Quiz Test!
           </button>
         </Link>
         <div style={{ fontSize: '0.95rem', color: '#555', marginTop: '0.5rem' }}>

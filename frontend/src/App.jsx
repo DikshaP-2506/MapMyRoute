@@ -118,6 +118,7 @@ function App() {
             //padding: 'min(2.5rem, 5vw)',
             minHeight: '350px',
             boxSizing: 'border-box',
+            marginTop: 80,
           }}
         >
           <Routes>
@@ -146,7 +147,7 @@ function App() {
 function Header({ user, getInitials, hideNavLinks }) {
   const navigate = useNavigate();
   return (
-    <header className="navbar navbar-expand-lg shadow mb-4" style={{ background: TEAL.main }}>
+    <header className="navbar navbar-expand-lg shadow mb-4" style={{ background: TEAL.main, position: 'fixed', top: 0, left: 0, width: '100vw', zIndex: 200, boxShadow: '0 2px 8px rgba(20,184,166,0.08)' }}>
       <div className="container-fluid">
         <Link to="/" className="navbar-brand fs-3 fw-bold d-flex align-items-center" style={{ color: '#fff' }}>
           <img src={logo} alt="MapMyRoute Logo" style={{ height: 48, width: 48, objectFit: 'contain', marginRight: 12 }} />

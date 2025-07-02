@@ -77,6 +77,9 @@ MapMyRoute utilizes a robust technology stack to deliver its features:
 
 The system architecture of MapMyRoute involves several interconnected components:
 
+### App Flow
+![App Flow](frontend/public/screenshots/AppFlow.png)
+
 - **User Input**: Users provide their goal, skill level, time, and preferences.
 - **AI-Based Roadmap Generation**: An AI module processes user input to create a personalized, weekly learning roadmap.
 - **Curated Resource Mapping**: Resources are linked to the personalized plan.
@@ -93,6 +96,7 @@ The system architecture of MapMyRoute involves several interconnected components
 
 AI played a crucial role throughout the development of MapMyRoute:
 
+
 - **ChatGPT**: Used for generating roadmap logic, refining content, and building intelligent chatbot responses.
 - **Groq AI**: Leveraged for ultra-fast AI model execution during testing and model benchmarking.
 - **Cursor AI**: Assisted in writing, debugging, and improving code directly within the development environment.
@@ -106,16 +110,35 @@ AI played a crucial role throughout the development of MapMyRoute:
 
 Here are some screenshots of the MapMyRoute user interface:
 
-*Note: These are descriptions based on the provided images. Replace with actual image links if hosting them.*
+### Home Page
+![Home Page](frontend/public/screenshots/HomePage.png)
 
-- **AI Roadmap Generator**: Interface for generating personalized learning roadmaps.
-- **My Skill Paths**: Displays saved skill plans and their progress.
-- **Weekly Planner**: An interactive calendar view for tasks and progress tracking.
-- **Progress Analytics**: Visual representation of learning progress and time spent.
-- **Resources Library**: A curated hub of learning resources.
-- **Career Insights**: Displays skill-to-job mapping and live job feeds.
-- **AI Skill Chatbot**: Interface of the AI personal assistant.
-- **Settings**: User information, preferred learning time slots, and options to export/delete data.
+### AI Roadmap Generator
+![AI Roadmap Generator](frontend/public/screenshots/AIRoadmap.png)
+
+### My Skill Paths
+![My Skill Paths](frontend/public/screenshots/SkillsPath.png)
+
+### Weekly Planner
+![Weekly Planner](frontend/public/screenshots/WeeklyPlanner.png)
+
+### Progress Analytics
+![Progress Analytics](frontend/public/screenshots/ProgressAnalysis.png)
+
+### Resources Library
+![Resources Library](frontend/public/screenshots/ResourcesLibrary.png)
+
+### Career Insights
+![Career Insights](frontend/public/screenshots/CareerInsights.png)
+
+### Quizzes
+![Quiz](frontend/public/screenshots/Quiz.png)
+
+### AI Skill Chatbot
+![AI Skill Chatbot](frontend/public/screenshots/AIChatbot.png)
+
+### Profile
+![Profile](frontend/public/screenshots/Profile.png)
 
 ## Setup and Installation Instructions
 
