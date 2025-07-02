@@ -138,7 +138,7 @@ Here are some screenshots of the MapMyRoute user interface:
 ![AI Skill Chatbot](frontend/public/screenshots/AIChatbot.png)
 
 ### Profile
-![Profile](frontend/public/screenshots/Profile.png)
+![Profile](frontend/public/screenshots/ProfilePage.png)
 
 ## Setup and Installation Instructions
 
