@@ -212,7 +212,16 @@ def parse_json_from_response(text):
     except Exception as e:
         print(f"Error parsing JSON: {str(e)}")
         print(f"Raw text: {text}")
-        raise
+        # Try to clean/truncate and re-parse
+        try:
+            cleaned = clean_json_string(text)
+            return json.loads(cleaned)
+        except Exception:
+            try:
+                truncated = truncate_to_last_complete_json(text)
+                return json.loads(truncated)
+            except Exception:
+                raise
 
 # --- AI Roadmap Generation (Groq) ---
 @app.post("/roadmap/generate", response_model=RoadmapResponse)
@@ -223,8 +232,9 @@ def generate_roadmap(req: RoadmapRequest):
         f"Generate a {req.duration}-week learning roadmap for {req.topic} at {req.level} level. "
         f"Assume the learner has {req.time} available per week."
         f"{goal_part} "
-        "For each week, list 2-4 specific learning goals or tasks. Respond in JSON as: "
-        "{title, description, weeks: [{week, goals: [..]}]}"
+        "For each week, list 2-4 specific learning goals or tasks. "
+        "Respond with only valid JSON, no explanations, no markdown, no comments. "
+        "Format: {title, description, weeks: [{week, goals: [..]}]}"
     )
     messages = [
         {"role": "system", "content": "You are an expert learning path generator."},
