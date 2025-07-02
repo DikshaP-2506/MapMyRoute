@@ -199,8 +199,7 @@ To set up and run MapMyRoute locally, follow these steps:
 
 ## Link to Deployed Application
 
-**(Provide the link to the deployed application here if available)**
-[https://map-my-route.vercel.app/Link to Deployed Application]
+https://map-my-route.vercel.app/
 
 ## Future Roadmap or Improvements
 
