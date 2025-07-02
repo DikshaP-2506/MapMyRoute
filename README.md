@@ -17,6 +17,7 @@ MapMyRoute is a next-generation AI-powered platform that creates personalized, o
 - [Setup and Installation Instructions](#setup-and-installation-instructions)
 - [Link to Deployed Application](#link-to-deployed-application)
 - [Future Roadmap or Improvements](#future-roadmap-or-improvements)
+- [Environment Variables (.env File Structure)](#environment-variables-.env-file-structure)
 
 ## Project Title and Description
 
@@ -26,7 +27,7 @@ In today's digital learning landscape, individuals often face an overload of con
 
 ## Team Members
 
-This project was developed by **SheCodesAI**:
+This project was developed by team **SheCodesAI**:
 
 - **Diksha Patkar** (D12C, 42)
 - **Sakshi Thorat** (D12B, 55)
@@ -56,20 +57,21 @@ MapMyRoute utilizes a robust technology stack to deliver its features:
 **Frontend:**
 - React (JavaScript, JSX)
 - Vite
+- BootStrap
 
 **Backend:**
 - Python
 - FastAPI
-- PostgreSQL
+- PostgreSQL Database
 
 **Authentication:**
 - Firebase Authentication
 - JWT
 
-**Integrations:**
+**Other Integrations:**
 - Landbot (for chatbot integration)
-- Adzuna (for job feeds)
-- GROQ API (for AI model execution)
+- Adzuna API (for job feeds)
+- GROQ API (for AI model execution/LLM)
 
 ## App Flow / System Architecture Diagram
 
@@ -142,12 +144,27 @@ To set up and run MapMyRoute locally, follow these steps:
     - Ensure PostgreSQL is installed and running.
     - Create a database for MapMyRoute.
     - Update the database connection string in your backend configuration (e.g., in a `.env` file).
-5. **Firebase Authentication Setup:**
+5. **Environment Variables (.env File Structure):**
+    - You will need to create `.env` files for the backend to securely store your API keys and configuration values.
+
+    **Create a .env file in backend folder(.env):**
+    ```
+    # Database
+    DATABASE_URL=postgresql://<username>:<password>@localhost:5432/<database_name>
+
+    # Adzuna API
+    ADZUNA_APP_ID=your_adzuna_app_id
+    ADZUNA_APP_KEY=your_adzuna_app_key
+
+    # Groq API
+    GROQ_API_KEY=your_groq_api_key
+
+    ```
+    Be sure to add your `.env` files to `.gitignore` to keep your secrets safe!
+6. **Firebase Authentication Setup:**
     - Create a Firebase project and enable Authentication.
-    - Configure your Firebase credentials in your frontend application.
-6. **API Key Configuration:**
-    - Obtain API keys for Landbot, Adzuna, and Groq API.
-    - Store these keys securely, preferably in environment variables, and configure them in your backend.
+    - Configure your Firebase credentials in your frontend application in firebase.js file.
+
 
 ## Link to Deployed Application
 
@@ -170,3 +187,45 @@ The team has outlined several exciting future enhancements for MapMyRoute:
     - Add support for voice-based queries and navigation using AI assistants (Google Assistant, Alexa, etc.).
 - **API Expansion**:
     - Provide public APIs for third-party integrations, allowing other developers to build on top of the platform.
+
+## Environment Variables (.env File Structure)
+
+You will need to create `.env` files for both the backend and frontend to securely store your API keys and configuration values.
+
+### Backend (.env example)
+```
+# Database
+DATABASE_URL=postgresql://<username>:<password>@localhost:5432/<database_name>
+
+# Firebase
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your/firebase-adminsdk.json
+
+# JWT
+JWT_SECRET_KEY=your_jwt_secret_key
+
+# Adzuna API
+ADZUNA_APP_ID=your_adzuna_app_id
+ADZUNA_APP_KEY=your_adzuna_app_key
+
+# Groq API
+GROQ_API_KEY=your_groq_api_key
+
+# Other
+# Add any other required environment variables here
+```
+
+### Frontend (.env example)
+```
+# Vite React App
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
+
+# Backend API URL
+VITE_API_URL=http://localhost:8000
+```
+
+Be sure to add your `.env` files to `.gitignore` to keep your secrets safe!
