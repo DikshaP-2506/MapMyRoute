@@ -17,7 +17,6 @@ MapMyRoute is a next-generation AI-powered platform that creates personalized, o
 - [Setup and Installation Instructions](#setup-and-installation-instructions)
 - [Link to Deployed Application](#link-to-deployed-application)
 - [Future Roadmap or Improvements](#future-roadmap-or-improvements)
-- [Environment Variables (.env File Structure)](#environment-variables-.env-file-structure)
 
 ## Project Title and Description
 
