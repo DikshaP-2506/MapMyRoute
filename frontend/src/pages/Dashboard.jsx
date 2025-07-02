@@ -68,6 +68,29 @@ function Toast({ message, onClose }) {
   );
 }
 
+// Helper to render a goal (string or object with sub-topics)
+function renderGoal(goal) {
+  if (typeof goal === 'string') {
+    return <span>{goal}</span>;
+  }
+  if (typeof goal === 'object' && goal !== null) {
+    // Support both 'goal' and 'topic' keys, and 'sub_topics' or 'subtopics'
+    const main = goal.goal || goal.topic || JSON.stringify(goal);
+    const subs = goal.sub_topics || goal.subtopics;
+    return (
+      <span>
+        <strong>{main}</strong>
+        {Array.isArray(subs) && subs.length > 0 && (
+          <ul style={{ marginTop: 4 }}>
+            {subs.map((sub, idx) => <li key={idx}>{sub}</li>)}
+          </ul>
+        )}
+      </span>
+    );
+  }
+  return null;
+}
+
 function MySkillPathsTab() {
   const [paths, setPaths] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -210,20 +233,7 @@ function MySkillPathsTab() {
                     <strong style={{ color: COLORS.teal }}>Week {week.week}</strong>
                     <ul style={{ paddingLeft: 18 }}>
                       {Array.isArray(week.goals) && week.goals.map((goal, i) => (
-                        <li key={i}>
-                          {typeof goal === 'object'
-                            ? goal.topic
-                              ? <>
-                                  <div><strong>{goal.topic}</strong></div>
-                                  {Array.isArray(goal.subtopics) && (
-                                    <ul>
-                                      {goal.subtopics.map((sub, j) => <li key={j}>{sub}</li>)}
-                                    </ul>
-                                  )}
-                                </>
-                              : JSON.stringify(goal)
-                            : goal}
-                        </li>
+                        <li key={i}>{renderGoal(goal)}</li>
                       ))}
                     </ul>
                   </div>
@@ -356,7 +366,7 @@ function RoadmapGeneratorTab() {
             <div key={w.week} style={{ marginBottom: '1rem', background: COLORS.tealLighter, borderRadius: 8, padding: 8 }}>
               <strong style={{ color: COLORS.teal }}>Week {w.week}</strong>
               <ul style={{ paddingLeft: 18 }}>
-                {w.goals.map((g, i) => <li key={i}>{g}</li>)}
+                {w.goals.map((g, i) => <li key={i}>{renderGoal(g)}</li>)}
               </ul>
             </div>
           ))}
