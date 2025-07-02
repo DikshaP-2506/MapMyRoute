@@ -40,3 +40,61 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Global responsive styles */
+@media (max-width: 900px) {
+  #root {
+    padding: 1rem;
+  }
+  .card {
+    padding: 1em;
+  }
+}
+
+@media (max-width: 700px) {
+  #root {
+    padding: 0.5rem;
+  }
+  .card {
+    padding: 0.5em;
+  }
+  .logo {
+    height: 3em;
+    padding: 0.5em;
+  }
+  body, html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 500px) {
+  #root {
+    padding: 0.2rem;
+  }
+  .card {
+    padding: 0.2em;
+  }
+  .logo {
+    height: 2em;
+    padding: 0.2em;
+  }
+  body, html {
+    font-size: 13px;
+  }
+  button, input, select, textarea {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1em;
+  }
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  /* Prevent horizontal scroll */
+  html, body {
+    overflow-x: hidden;
+  }
+}
