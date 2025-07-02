@@ -645,6 +645,94 @@ def get_analytics_suggestions(skill_path_id: int, user: UserDB = Depends(get_cur
     except Exception as e:
         return {"suggestions": [], "error": str(e)}
 
+def is_resource_available(url):
+    """Check if a resource URL is available (YouTube: oEmbed API + HTML, playlists: HTML, others: status 200 and not a known error page)."""
+    try:
+        import urllib.parse
+        # YouTube playlist check
+        if ("youtube.com/playlist?list=" in url):
+            resp = requests.get(url, timeout=5)
+            html = resp.text.lower()
+            playlist_error_phrases = [
+                "this playlist does not exist",
+                "playlist unavailable",
+                "this playlist is private",
+                "no videos found"
+            ]
+            for phrase in playlist_error_phrases:
+                if phrase in html:
+                    print(f"YouTube playlist unavailable: {url}")
+                    return False
+            if len(html.strip()) < 100:
+                print(f"YouTube playlist very short/empty: {url}")
+                return False
+            return True
+        # YouTube video check via oEmbed API and HTML fallback
+        if ("youtube.com/watch" in url or "youtu.be/" in url):
+            # Normalize to full YouTube URL
+            if "youtu.be/" in url:
+                video_id = url.split("youtu.be/")[-1].split("?")[0]
+                yt_url = f"https://www.youtube.com/watch?v={video_id}"
+            else:
+                # Extract video_id from v= param if present
+                parsed = urllib.parse.urlparse(url)
+                query = urllib.parse.parse_qs(parsed.query)
+                video_id = query.get("v", [None])[0]
+                if video_id:
+                    yt_url = f"https://www.youtube.com/watch?v={video_id}"
+                else:
+                    yt_url = url
+            oembed_url = f"https://www.youtube.com/oembed?url={urllib.parse.quote(yt_url)}&format=json"
+            resp = requests.get(oembed_url, timeout=5)
+            if resp.status_code == 200:
+                return True
+            # Fallback: check HTML for error phrases
+            resp2 = requests.get(yt_url, timeout=5)
+            html = resp2.text.lower()
+            yt_error_phrases = [
+                "this video isn't available anymore",
+                "video unavailable",
+                "this video is private",
+                "has been removed",
+                "is not available in your country"
+            ]
+            for phrase in yt_error_phrases:
+                if phrase in html:
+                    print(f"YouTube unavailable: {url}")
+                    return False
+            if len(html.strip()) < 100:
+                print(f"YouTube very short/empty: {url}")
+                return False
+            return True
+        # Other resources: check status and HTML content
+        resp = requests.get(url, timeout=5)
+        if resp.status_code != 200:
+            print(f"Resource not 200: {url}")
+            return False
+        # Check for common and platform-specific error phrases in the HTML (case-insensitive, partial match)
+        error_phrases = [
+            # Generic
+            "not found", "404", "unavailable", "error", "page not found", "does not exist", "removed", "private",
+            # Coursera
+            "course not found", "page not found", "this course is no longer available", "enrollments are closed", "we were not able to find the page you're looking for.",
+            # Udemy
+            "course not found", "sorry, this course is no longer available", "this course is unavailable", "udemy.com home page",
+            # Amazon
+            "currently unavailable", "the web address you entered is not a functioning page", "out of print", "no longer available", "looking for something? we're sorry. the web address you entered is not a functioning page on our site"
+        ]
+        html = resp.text.lower()
+        if len(html.strip()) < 100:
+            print(f"Resource very short/empty: {url}")
+            return False  # Very short/empty page
+        for phrase in error_phrases:
+            if phrase in html:
+                print(f"Resource error phrase '{phrase}' found: {url}")
+                return False
+        return True
+    except Exception as e:
+        print(f"Resource check exception for {url}: {e}")
+        return False
+
 # --- Resource Library ---
 @app.get("/resources")
 def get_resources(topic: Optional[str] = None):
@@ -681,7 +769,6 @@ def get_resources(topic: Optional[str] = None):
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
         # Try to extract JSON from markdown/code block if present
-        import re
         match = re.search(r"```json\s*(.*?)```", content, re.DOTALL)
         if match:
             json_str = match.group(1)
@@ -707,7 +794,9 @@ def get_resources(topic: Optional[str] = None):
             filtered = []
             for r in resources:
                 if isinstance(r, dict) and "title" in r and "url" in r:
-                    filtered.append(r)
+                    # Filter out unavailable resource links (all platforms)
+                    if is_resource_available(r["url"]):
+                        filtered.append(r)
             resources = filtered
         return {"resources": resources}
     except Exception as e:
