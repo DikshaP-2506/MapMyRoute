@@ -26,7 +26,7 @@ const Settings = () => {
     (async () => {
       try {
         const token = await getAuthToken();
-        const res = await fetch("http://localhost:8000/skill-paths", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch skill paths");
@@ -43,7 +43,7 @@ const Settings = () => {
     try {
       const token = await getAuthToken();
       setLoading(true);
-      const res = await fetch(`http://localhost:8000/export?skill_path_id=${selectedPath}&format=${format}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/export?skill_path_id=${selectedPath}&format=${format}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Export failed");
@@ -70,7 +70,7 @@ const Settings = () => {
       const token = await getAuthToken();
       setLoading(true);
       // Delete from backend (Postgres)
-      const res = await fetch("http://localhost:8000/user/delete", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/user/delete`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });

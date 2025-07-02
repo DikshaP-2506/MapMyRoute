@@ -37,7 +37,7 @@ function App() {
         setUser(u);
         setUserLoading(false);
       } else if (localStorage.getItem("token")) {
-        fetch("http://localhost:8000/user/me", {
+        fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }

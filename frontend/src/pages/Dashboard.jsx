@@ -81,7 +81,7 @@ function MySkillPathsTab() {
     setError("");
     try {
       const token = await getAuthToken();
-      const res = await fetch("http://localhost:8000/skill-paths", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to fetch skill paths");
@@ -98,7 +98,7 @@ function MySkillPathsTab() {
   const fetchRoadmapDetails = async (id) => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`http://localhost:8000/skill-paths/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to fetch roadmap details");
@@ -124,7 +124,7 @@ function MySkillPathsTab() {
     if (!window.confirm("Delete this skill path?")) return;
     try {
       const token = await getAuthToken();
-      const res = await fetch(`http://localhost:8000/skill-paths/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -267,7 +267,7 @@ function RoadmapGeneratorTab() {
     setError("");
     setSaveMsg("");
     try {
-      const res = await fetch("http://localhost:8000/roadmap/generate", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/roadmap/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
@@ -294,7 +294,7 @@ function RoadmapGeneratorTab() {
     setSaveMsg("");
     try {
       const token = await getAuthToken();
-      const res = await fetch("http://localhost:8000/skill-paths", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -405,7 +405,7 @@ function ResourcesLibraryTab() {
     setError("");
     setResources(null);
     try {
-      const res = await fetch("http://localhost:8000/api/get-resources", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/get-resources`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: searchTopic, difficultyLevel: difficulty || "Beginner" })
@@ -551,7 +551,7 @@ function WeeklyPlannerTab({ skillPathId }) {
     (async () => {
       try {
         const token = await getAuthToken();
-        const res = await fetch(`http://localhost:8000/planner?skill_path_id=${skillPathId}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/planner?skill_path_id=${skillPathId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch planner tasks");
@@ -591,7 +591,7 @@ function WeeklyPlannerTab({ skillPathId }) {
     setShifting(true);
     try {
       const token = await getAuthToken();
-      const res = await fetch('http://localhost:8000/planner/shift_pending', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/planner/shift_pending`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -711,7 +711,7 @@ function WeeklyPlannerTab({ skillPathId }) {
     setRegenLoading(true);
     try {
       const token = await getAuthToken();
-      await fetch("http://localhost:8000/planner/regenerate_week", {
+      await fetch(`${import.meta.env.VITE_API_URL}/planner/regenerate_week`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -737,7 +737,7 @@ function WeeklyPlannerTab({ skillPathId }) {
     const newStatus = task.status === 'complete' ? 'pending' : 'complete';
     try {
       const token = await getAuthToken();
-      const res = await fetch(`http://localhost:8000/planner/${taskId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/planner/${taskId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -942,14 +942,14 @@ function ProgressAnalyticsTab({ skillPathId }) {
     setLoading(true);
     (async () => {
       const token = await getAuthToken();
-      const res = await fetch(`http://localhost:8000/analytics?skill_path_id=${skillPathId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/analytics?skill_path_id=${skillPathId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       setStats(data);
 
       // Fetch AI suggestions
-      const res2 = await fetch(`http://localhost:8000/analytics/suggestions?skill_path_id=${skillPathId}`, {
+      const res2 = await fetch(`${import.meta.env.VITE_API_URL}/analytics/suggestions?skill_path_id=${skillPathId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data2 = await res2.json();
@@ -1070,7 +1070,7 @@ function AdjustRoadmapButton() {
     setLoading(true);
     setMsg("");
     try {
-      const res = await axios.post(`http://127.0.0.1:8000/roadmap/ai-recalculate/${userId}`);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/roadmap/ai-recalculate/${userId}`);
       setMsg(res.data.message || "Roadmap intelligently updated.");
     } catch (err) {
       setMsg("Failed to update roadmap.");
@@ -1100,7 +1100,7 @@ const Dashboard = () => {
     (async () => {
       try {
         const token = await getAuthToken();
-        const res = await fetch("http://localhost:8000/skill-paths", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/skill-paths`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) return;

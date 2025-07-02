@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://127.0.0.1:8000"; // Adjust if your backend runs elsewhere
+const API_BASE = import.meta.env.VITE_API_URL; // Uses environment variable
 
 const MicroSkillChallenge = ({ userId }) => {
   const [quiz, setQuiz] = useState(null);
@@ -53,7 +53,7 @@ const MicroSkillChallenge = ({ userId }) => {
     try {
       // Collect the IDs of the questions shown to the user
       const question_ids = quiz.questions.map((q) => q.id);
-      const res = await axios.post('http://127.0.0.1:8000/quiz/attempt', {
+      const res = await axios.post(`${API_BASE}/quiz/attempt`, {
         user_id: userId,
         quiz_id: quiz.quiz_id, // use the quiz_id from the quiz object
         answers,
