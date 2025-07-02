@@ -192,3 +192,29 @@ const LandingPage = () => (
 );
 
 export default LandingPage;
+
+// Responsive styles for the header/navbar
+const style = document.createElement('style');
+style.innerHTML = `
+@media (max-width: 768px) {
+  .navbar .container-fluid > .d-flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .navbar-brand {
+    font-size: 1.5rem !important;
+  }
+  .navbar-brand img {
+    height: 48px !important;
+    width: 48px !important;
+  }
+  .navbar .d-flex.gap-2 {
+    flex-direction: row !important;
+    width: 100%;
+    justify-content: flex-start !important;
+    margin-top: 0.5rem;
+  }
+}
+`;
+document.head.appendChild(style);
