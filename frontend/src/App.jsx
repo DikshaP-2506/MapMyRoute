@@ -138,7 +138,7 @@ function App() {
         <footer className="text-white text-center py-3 mt-auto" style={{fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', background: '#444'}}>
           &copy; {new Date().getFullYear()} MapMyRoute. All rights reserved.
         </footer>
-        {(window.location.pathname === "/") && <LandbotWidgetLoader />}
+        {!["/", "/login", "/signup"].includes(window.location.pathname) && <LandbotWidgetLoader />}
       </Router>
     </>
   );

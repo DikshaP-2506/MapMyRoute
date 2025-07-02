@@ -184,7 +184,7 @@ const LandingPage = () => (
       <section className="container rounded-4 shadow p-4 mb-4" style={{ background: TEAL.lighter, width: '100%', maxWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
         <h2 className="text-center mb-3" style={{ color: TEAL.main }}>Explore a Sample Roadmap</h2>
         <div className="text-center fw-bold fs-5" style={{ color: TEAL.accent }}>
-          Sample: Python for Beginners (Demo Coming Soon)
+          Sample: Python for Beginners
         </div>
       </section>
     </div>
