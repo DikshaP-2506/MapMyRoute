@@ -49,6 +49,15 @@
   .card {
     padding: 1em;
   }
+  body, html {
+    font-size: 16px;
+  }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.2rem; }
+  p, label, input, button, select, textarea {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 700px) {
@@ -64,6 +73,12 @@
   }
   body, html {
     font-size: 15px;
+  }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 1rem; }
+  p, label, input, button, select, textarea {
+    font-size: 0.95rem;
   }
 }
 
@@ -81,10 +96,15 @@
   body, html {
     font-size: 13px;
   }
+  h1 { font-size: 1.1rem; }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.95rem; }
+  p, label, input, button, select, textarea {
+    font-size: 0.9rem;
+  }
   button, input, select, textarea {
     min-width: 44px;
     min-height: 44px;
-    font-size: 1em;
   }
   img, video {
     max-width: 100%;
