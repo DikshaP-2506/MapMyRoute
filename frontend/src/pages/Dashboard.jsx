@@ -529,11 +529,10 @@ function ResourcesLibraryTab() {
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
-function WeeklyPlannerTab({ skillPathId }) {
+function WeeklyPlannerTab({ skillPathId, refresh }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refresh, setRefresh] = useState(0);
   const [shifting, setShifting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [regenLoading, setRegenLoading] = useState(false);
@@ -605,7 +604,6 @@ function WeeklyPlannerTab({ skillPathId }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || data.message || 'Failed to shift tasks');
       alert(data.message || `Shifted ${data.shifted} pending tasks.`);
-      setRefresh(r => r + 1);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -719,7 +717,6 @@ function WeeklyPlannerTab({ skillPathId }) {
         },
         body: JSON.stringify({ skill_path_id: skillPathId, week: weekNum, mode })
       });
-      setRefresh(r => r + 1);
       setToastMsg(`Tasks updated for week ${weekNum} (${mode === 'deeper' ? 'Deeper' : 'Easier'})!`);
     } catch (err) {
       alert("Failed to regenerate week: " + err.message);
@@ -746,7 +743,6 @@ function WeeklyPlannerTab({ skillPathId }) {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error('Failed to update task status');
-      setRefresh(r => r + 1);
       if (newStatus === 'complete') {
         setShowCelebration(true);
         setToastMsg('Task marked as complete!');
@@ -1093,6 +1089,7 @@ const Dashboard = () => {
   const [paths, setPaths] = useState([]);
   const [selectedPath, setSelectedPath] = useState("");
   const [pathsLoading, setPathsLoading] = useState(false);
+  const [plannerRefresh, setPlannerRefresh] = useState(0);
 
   useEffect(() => {
     // Fetch user's skill paths for selector
@@ -1115,7 +1112,7 @@ const Dashboard = () => {
   // Tab content with skill path selector context
   const tabContent = [
     <MySkillPathsTab key="paths" />,
-    <WeeklyPlannerTab key="planner" skillPathId={selectedPath} />,
+    <WeeklyPlannerTab key="planner" skillPathId={selectedPath} refresh={plannerRefresh} />,
     <ProgressAnalyticsTab key="analytics" skillPathId={selectedPath} />,
     <RoadmapGeneratorTab key="generator" />,
     <ResourcesLibraryTab key="resources" />
@@ -1191,7 +1188,10 @@ const Dashboard = () => {
               border: 'none',
               boxShadow: activeTab === idx ? `0 2px 8px ${COLORS.shadow}` : 'none',
             }}
-            onClick={() => setActiveTab(idx)}
+            onClick={() => {
+              setActiveTab(idx);
+              if (idx === 1) setPlannerRefresh(r => r + 1);
+            }}
           >
             {tab}
           </button>
