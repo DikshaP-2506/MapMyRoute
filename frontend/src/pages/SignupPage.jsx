@@ -42,7 +42,7 @@ const SignupPage = () => {
         const errData = await res.json();
         throw new Error(errData.detail || "Backend registration failed");
       }
-      navigate("/dashboard");
+      navigate("/login");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -55,7 +55,7 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/dashboard");
+      navigate("/login");
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         setError(err.message);
