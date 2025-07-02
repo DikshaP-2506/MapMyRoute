@@ -51,16 +51,6 @@ coverage/
 *.bak
 *.tmp
 
-# IDE
-.idea/
-*.iml
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Firebase
-*.json
-
 # Misc
 *.swp
 *.swo
