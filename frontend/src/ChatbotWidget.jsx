@@ -3,7 +3,7 @@ import React from "react";
 function ChatbotWidget() {
   const openChatbot = () => {
     window.open(
-      "https://landbot.online/v3/H-3022502-8EU14B8QYAUP44MI/index.html",
+      "https://landbot.online/v3/H-3085247-WZ1II3L6TB0QYI30/index.html",
       "_blank",
       "noopener,noreferrer,width=400,height=600"
     );
