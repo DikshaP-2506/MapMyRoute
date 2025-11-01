@@ -26,9 +26,19 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 import re
 import urllib.parse
+
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mapmyroute.db")
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
+
+# Ensure database directory exists (for SQLite on Render)
+if DATABASE_URL.startswith("sqlite:///"):
+    db_path = DATABASE_URL.replace("sqlite:///", "")
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+        print(f"Created database directory: {db_dir}")
+
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
