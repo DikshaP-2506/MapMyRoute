@@ -26,12 +26,10 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 import re
 import urllib.parse
-from sqlalchemy.dialects.postgresql import ARRAY
-
 # --- Database Setup ---
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mapmyroute")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mapmyroute.db")
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -97,7 +95,7 @@ class UserProgress(Base):
     __tablename__ = "user_progress"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    current_skills = Column(ARRAY(String), default=[])
+    current_skills = Column(Text, default="[]")  # JSON string for SQLite compatibility
     updated_at = Column(DateTime, default=datetime.utcnow)
 
 # Create tables
@@ -519,11 +517,14 @@ def patch_planner_task(id: int, body: PlannerTaskUpdate, user: UserDB = Depends(
             skill_tag = skill_path.title
             progress = db.query(UserProgress).filter_by(user_id=user.id).first()
             if progress:
-                if skill_tag not in progress.current_skills:
-                    progress.current_skills.append(skill_tag)
+                # Parse current_skills from JSON string
+                current_skills = pyjson.loads(progress.current_skills) if progress.current_skills else []
+                if skill_tag not in current_skills:
+                    current_skills.append(skill_tag)
+                    progress.current_skills = pyjson.dumps(current_skills)
                     progress.updated_at = datetime.utcnow()
             else:
-                progress = UserProgress(user_id=user.id, current_skills=[skill_tag])
+                progress = UserProgress(user_id=user.id, current_skills=pyjson.dumps([skill_tag]))
                 db.add(progress)
             db.commit()
     return {
